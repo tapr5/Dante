@@ -4,7 +4,7 @@
   "description": "Simple API project on Vercel",
   "main": "index.js",
   "scripts": {
-    "start": "node api/hello.js"
+    "start": "node hello.js"
   },
   "dependencies": {
     "express": "^4.19.2"
