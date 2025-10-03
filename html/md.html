@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>Akinator Full JSON Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; }
+    pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    img { max-width: 150px; display: block; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Akinator Full JSON Viewer</h1>
+
+  <button id="startBtn">Start Game</button>
+
+  <div id="answerSection" style="display:none;">
+    <label>Step:</label>
+    <input type="number" id="step" value="0" />
+
+    <label>Progression:</label>
+    <input type="text" id="progression" value="0.0" />
+
+    <label>Answer (0=yes,1=no,2=idk,3=probably,4=probably not):</label>
+    <input type="text" id="answer" value="0" />
+
+    <button id="sendAnswerBtn">Send Answer</button>
+  </div>
+
+  <h2>JSON Response:</h2>
+  <pre id="jsonOutput">{}</pre>
+  <div id="imageContainer"></div>
+
+  <script>
+    const startBtn = document.getElementById('startBtn');
+    const sendAnswerBtn = document.getElementById('sendAnswerBtn');
+    const answerSection = document.getElementById('answerSection');
+    const jsonOutput = document.getElementById('jsonOutput');
+    const imageContainer = document.getElementById('imageContainer');
+
+    let session = "";
+    let signature = "";
+
+    startBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('https://dante-pi.vercel.app/api/marid', {
+          method: 'POST'
+        });
+        const data = await res.json();
+        session = data.session;
+        signature = data.signature;
+
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+        answerSection.style.display = 'block';
+
+        // إذا هناك صورة مارد
+        if(data.djinn_picture){
+          imageContainer.innerHTML = `<img src="${data.djinn_picture}" alt="Djinn Picture"/>`;
+        } else {
+          imageContainer.innerHTML = "";
+        }
+
+        // ضبط step و progression تلقائيًا
+        if(data.step !== undefined) document.getElementById('step').value = data.step;
+        if(data.progression !== undefined) document.getElementById('progression').value = data.progression;
+
+      } catch(err){
+        jsonOutput.textContent = "Error: " + err.message;
+      }
+    });
+
+    sendAnswerBtn.addEventListener('click', async () => {
+      try {
+        const step = document.getElementById('step').value;
+        const progression = document.getElementById('progression').value;
+        const answer = document.getElementById('answer').value;
+
+        const formData = new URLSearchParams({
+          step,
+          progression,
+          answer,
+          session,
+          signature,
+          cm: "false",
+          sid: "NaN",
+          question_filter: "string",
+          step_last_proposition: ""
+        });
+
+        const res = await fetch('https://dante-pi.vercel.app/api/marid1', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        jsonOutput.textContent = JSON.stringify(data, null, 2);
+
+        // إذا هناك صورة (مارد أو شخصية)
+        if(data.djinn_picture){
+          imageContainer.innerHTML = `<img src="${data.djinn_picture}" alt="Djinn Picture"/>`;
+        } else if(data.photo){
+          imageContainer.innerHTML = `<img src="${data.photo}" alt="Character Picture"/>`;
+        } else {
+          imageContainer.innerHTML = "";
+        }
+
+        // ضبط step و progression تلقائيًا للسؤال التالي
+        if(data.step !== undefined) document.getElementById('step').value = data.step;
+        if(data.progression !== undefined) document.getElementById('progression').value = data.progression;
+
+      } catch(err){
+        jsonOutput.textContent = "Error: " + err.message;
+      }
+    });
+  </script>
+</body>
+</html>
