@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.G.E KINGDOM - ستار مان</title>
+    <meta name="description" content="الموقع الرسمي لمملكة M.G.E وستار مان - انضم إلى مجتمعنا المميز">
+    <meta name="keywords" content="M.G.E, KINGDOM, ستار مان, WhatsApp Group, مجتمع, كروب">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@400;500;700&family=Amiri+Quran:wght@400&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Kufi Arabic', 'Amiri Quran', serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #16213e 75%, #1a1a2e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Background Effects */
+        .bg-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bg-circle {
+            position: absolute;
+            border-radius: 50%;
+            mix-blend-mode: multiply;
+            filter: blur(80px);
+            opacity: 0.2;
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .bg-circle:nth-child(1) {
+            top: 20%;
+            left: 10%;
+            width: 300px;
+            height: 300px;
+            background: #8b5cf6;
+            animation-delay: 0s;
+        }
+
+        .bg-circle:nth-child(2) {
+            top: 40%;
+            right: 10%;
+            width: 250px;
+            height: 250px;
+            background: #facc15;
+            animation-delay: 1s;
+        }
+
+        .bg-circle:nth-child(3) {
+            bottom: 20%;
+            left: 50%;
+            width: 280px;
+            height: 280px;
+            background: #3b82f6;
+            animation-delay: 2s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.2; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .main-title {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .crown-icon {
+            font-size: 2.5rem;
+            color: #facc15;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        .title-text {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #facc15, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(250, 204, 21, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.8rem;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+
+        .islamic-text {
+            font-size: 1.2rem;
+            color: #9ca3af;
+            font-family: 'Amiri Quran', serif;
+        }
+
+        @keyframes glow {
+            0%, 100% { filter: drop-shadow(0 0 5px #facc15); }
+            50% { filter: drop-shadow(0 0 20px #facc15); }
+        }
+
+        /* Tabs */
+        .tabs-container {
+            margin: 40px 0;
+        }
+
+        .tabs-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+            background: rgba(31, 41, 55, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 15px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .tab-button:hover {
+            background: rgba(250, 204, 21, 0.1);
+            color: #facc15;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(45deg, #facc15, #f59e0b);
+            color: #1a1a2e;
+            font-weight: 700;
+        }
+
+        .tab-icon {
+            font-size: 1.2rem;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Section Headers */
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .section-title.high-admin { color: #facc15; }
+        .section-title.special-admin { color: #3b82f6; }
+        .section-title.kings { color: #f97316; }
+        .section-title.supervisors { color: #8b5cf6; }
+
+        .section-divider {
+            width: 100px;
+            height: 3px;
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        .section-divider.high-admin { background: linear-gradient(90deg, #facc15, transparent); }
+        .section-divider.special-admin { background: linear-gradient(90deg, #3b82f6, transparent); }
+        .section-divider.kings { background: linear-gradient(90deg, #f97316, transparent); }
+        .section-divider.supervisors { background: linear-gradient(90deg, #8b5cf6, transparent); }
+
+        /* Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .rank-card {
+            background: rgba(31, 41, 55, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .rank-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .rank-card:hover::before {
+            left: 100%;
+        }
+
+        .rank-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .rank-card.yellow { border-right: 4px solid #facc15; }
+        .rank-card.blue { border-right: 4px solid #3b82f6; }
+        .rank-card.purple { border-right: 4px solid #8b5cf6; }
+        .rank-card.red { border-right: 4px solid #ef4444; }
+        .rank-card.green { border-right: 4px solid #10b981; }
+        .rank-card.orange { border-right: 4px solid #f97316; }
+        .rank-card.cyan { border-right: 4px solid #06b6d4; }
+        .rank-card.gray { border-right: 4px solid #6b7280; }
+
+        .rank-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .rank-icon {
+            font-size: 2.5rem;
+            flex-shrink: 0;
+        }
+
+        .rank-info {
+            flex: 1;
+        }
+
+        .rank-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 5px;
+        }
+
+        .rank-name {
+            font-size: 0.9rem;
+            color: #d1d5db;
+        }
+
+        .rank-badge {
+            background: rgba(250, 204, 21, 0.2);
+            color: #facc15;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        /* Supervisor Cards */
+        .supervisor-card {
+            background: rgba(139, 92, 246, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .supervisor-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #8b5cf6;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .supervisor-names {
+            space-y: 10px;
+        }
+
+        .supervisor-name {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 15px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .supervisor-name:hover {
+            background: rgba(139, 92, 246, 0.2);
+            transform: translateX(-5px);
+        }
+
+        .supervisor-bullet {
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+
+        .supervisor-text {
+            color: #ffffff;
+        }
+
+        .empty-slot {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Group Section */
+        .group-section {
+            margin: 60px 0;
+            text-align: center;
+        }
+
+        .group-card {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .group-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #facc15;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .sparkle-icon {
+            animation: sparkle 1.5s ease-in-out infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.2) rotate(180deg); }
+        }
+
+        .group-image {
+            width: 200px;
+            height: 200px;
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            border: 4px solid rgba(250, 204, 21, 0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            object-fit: cover;
+        }
+
+        .join-button {
+            background: linear-gradient(45deg, #facc15, #f97316);
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        .join-button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.4);
+        }
+
+        .group-description {
+            color: #d1d5db;
+            font-size: 1rem;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 60px;
+        }
+
+        .footer-text {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title-text {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.4rem;
+            }
+            
+            .tabs-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .group-card {
+                margin: 0 20px;
+                padding: 30px 20px;
+            }
+            
+            .group-image {
+                width: 150px;
+                height: 150px;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(45deg, #facc15, #8b5cf6);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(45deg, #f59e0b, #7c3aed);
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Effects -->
+    <div class="bg-effects">
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="main-title">
+                <i class="fas fa-crown crown-icon"></i>
+                <h1 class="title-text">M.G.E KINGDOM</h1>
+                <i class="fas fa-crown crown-icon"></i>
+            </div>
+            <p class="subtitle">STAR MAN🏯√∆</p>
+            <div class="islamic-text">✥ «﷽» ✥</div>
+        </header>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Tabs -->
+            <div class="tabs-container">
+                <div class="tabs-list">
+                    <button class="tab-button active" onclick="showTab('high-admin')">
+                        <i class="fas fa-crown tab-icon"></i>
+                        <span>القيادة العليا</span>
+                    </button>
+                    <button class="tab-button" onclick="showTab('special-admin')">
+                        <i class="fas fa-shield-alt tab-icon"></i>
+                        <span>رتب خاصة</span>
+                    </button>
+                    <button class="tab-button" onclick="showTab('kings')">
+                        <i class="fas fa-star tab-icon"></i>
+                        <span>ملوك الأسبوع</span>
+                    </button>
+                    <button class="tab-button" onclick="showTab('supervisors')">
+                        <i class="fas fa-users tab-icon"></i>
+                        <span>مشرفين</span>
+                    </button>
+                </div>
+
+                <!-- High Admin Ranks -->
+                <div id="high-admin" class="tab-content active">
+                    <div class="section-header">
+                        <h2 class="section-title high-admin">🔰الرتب الإدارية العليا</h2>
+                        <div class="section-divider high-admin"></div>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="rank-card yellow">
+                            <div class="rank-content">
+                                <div class="rank-icon">👑</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الامبراطور</div>
+                                    <div class="rank-name">ناغي</div>
+                                </div>
+                                <div class="rank-badge">نشط</div>
+                            </div>
+                        </div>
+                        <div class="rank-card blue">
+                            <div class="rank-content">
+                                <div class="rank-icon">⚡</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب الامبراطور</div>
+                                    <div class="rank-name">غون</div>
+                                </div>
+                                <div class="rank-badge">نشط</div>
+                            </div>
+                        </div>
+                        <div class="rank-card purple">
+                            <div class="rank-content">
+                                <div class="rank-icon">🪽</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">اللورد</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card purple">
+                            <div class="rank-content">
+                                <div class="rank-icon">🪶</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب اللورد</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card red">
+                            <div class="rank-content">
+                                <div class="rank-icon">🐉</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الدوق</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card red">
+                            <div class="rank-content">
+                                <div class="rank-icon">🐍</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب الدوق</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card cyan">
+                            <div class="rank-content">
+                                <div class="rank-icon">❄️</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الأمير</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card cyan">
+                            <div class="rank-content">
+                                <div class="rank-icon">💧</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب الأمير</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card gray">
+                            <div class="rank-content">
+                                <div class="rank-icon">🕷️</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الهوكاجي</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card gray">
+                            <div class="rank-content">
+                                <div class="rank-icon">🕸️</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب الهوكاجي</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Special Admin Ranks -->
+                <div id="special-admin" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title special-admin">🛡️الرتب الإدارية الخاصة</h2>
+                        <div class="section-divider special-admin"></div>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="rank-card green">
+                            <div class="rank-content">
+                                <div class="rank-icon">🍃</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الادمرال</div>
+                                    <div class="rank-name">تنغن</div>
+                                </div>
+                                <div class="rank-badge">نشط</div>
+                            </div>
+                        </div>
+                        <div class="rank-card orange">
+                            <div class="rank-content">
+                                <div class="rank-icon">🔥</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">نائب الادمرال</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card blue">
+                            <div class="rank-content">
+                                <div class="rank-icon">🎩</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">الملازم</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card blue">
+                            <div class="rank-content">
+                                <div class="rank-icon">🏳️</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">حامل راية</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card yellow">
+                            <div class="rank-content">
+                                <div class="rank-icon">✨</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">حامل بيرق</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card red">
+                            <div class="rank-content">
+                                <div class="rank-icon">🧧</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">عميد</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card gray">
+                            <div class="rank-content">
+                                <div class="rank-icon">⚔️</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">قائد فيلق الاستطلاع</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card orange">
+                            <div class="rank-content">
+                                <div class="rank-icon">🍁</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">المستشار</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Kings of the Week -->
+                <div id="kings" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title kings">🔥ملوك الأسبوع</h2>
+                        <div class="section-divider kings"></div>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="rank-card yellow">
+                            <div class="rank-content">
+                                <div class="rank-icon">🥇</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">المشرف الذهبي</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card gray">
+                            <div class="rank-content">
+                                <div class="rank-icon">🥈</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">المشرف المتخاذل</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card orange">
+                            <div class="rank-content">
+                                <div class="rank-icon">🔥</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">ملك الفعاليات</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card blue">
+                            <div class="rank-content">
+                                <div class="rank-icon">⭐</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">ملك التفاعل</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card green">
+                            <div class="rank-content">
+                                <div class="rank-icon">🚴🏻</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">ملك المسابقات</div>
+                                    <div class="rank-name">سكونا</div>
+                                </div>
+                                <div class="rank-badge">نشط</div>
+                            </div>
+                        </div>
+                        <div class="rank-card purple">
+                            <div class="rank-content">
+                                <div class="rank-icon">🎭</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">العضو الغامض</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card yellow">
+                            <div class="rank-content">
+                                <div class="rank-icon">🌟</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">العضو المميز</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card pink">
+                            <div class="rank-content">
+                                <div class="rank-icon">🎀</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">العضو الرومانسي</div>
+                                    <div class="rank-name"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rank-card indigo">
+                            <div class="rank-content">
+                                <div class="rank-icon">🔖</div>
+                                <div class="rank-info">
+                                    <div class="rank-title">العضو المخلص</div>
+                                    <div class="rank-name">غون</div>
+                                </div>
+                                <div class="rank-badge">نشط</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Training Supervisors -->
+                <div id="supervisors" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title supervisors">🔮مشرفين تدريبي</h2>
+                        <div class="section-divider supervisors"></div>
+                    </div>
+                    <div class="cards-grid">
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>أ</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ارثر_الوكا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">اوبيتو-ايرين_اليا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ايتاتشي</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ب</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">بوروتو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">بان</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ت</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">توجي_تانجيرو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ترانكس</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ث</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ثورفين</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>د</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ديفيد</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ر</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">رين</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ريوما</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ز</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">زورو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">زينوه</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>س</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">سونغ</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">سانجي</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ساسكي</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ش</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">شادو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">شينوبو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">شانكس</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>غ</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">غوجو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">غيومي</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ك</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">كيلوا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">كانوا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">كانيكي</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ل</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">لونا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">لوفي</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>م</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ماو ماو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ميكا</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">مارينات</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ميتسوري</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">مومو</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ماكيما</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">مادارا</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ن</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">نامي</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">ناروتو</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ه</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">هانكوك</span>
+                                </div>
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">هيناتا</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="supervisor-card">
+                            <div class="supervisor-header">
+                                <span>⌬━─━═━╾𓆩</span>
+                                <span>ي</span>
+                                <span>𓆪╼━═━─━⌬</span>
+                            </div>
+                            <div class="supervisor-names">
+                                <div class="supervisor-name">
+                                    <span class="supervisor-bullet">⧉↵╎</span>
+                                    <span class="supervisor-text">يوكي</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Group Section -->
+            <div class="group-section">
+                <div class="group-card">
+                    <h2 class="group-title">
+                        <i class="fas fa-sparkles sparkle-icon"></i>
+                        انضم إلى مملكتنا
+                        <i class="fas fa-sparkles sparkle-icon"></i>
+                    </h2>
+                    <img src="https://files.catbox.moe/upfsmg.jpg" alt="M.G.E KINGDOM Group" class="group-image">
+                    <a href="https://chat.whatsapp.com/G8Ah6L2yzZkHdjQZSapcY8?mode=ems_copy_t" target="_blank" class="join-button">
+                        <i class="fas fa-crown"></i>
+                        انضم إلى الكروب
+                    </a>
+                    <p class="group-description">
+                        كن جزءًا من مجتمعنا المميز وشارك في المغامرات المثيرة
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">
+                © 2025 M.G.E KINGDOM - جميع الحقوق محفوظة
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+        }
+
+        // Add some interactive animations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on scroll
+            const cards = document.querySelectorAll('.rank-card, .supervisor-card');
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.style.animation = 'fadeInUp 0.6s ease-out forwards';
+                    }
+                });
+            });
+            
+            cards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+
+        // Add fadeInUp animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
