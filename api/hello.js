@@ -1,11 +1,7 @@
-import express from "express";
-const router = express.Router();
-
-router.get("/", (req, res) => {
-  res.json({
+export default function handler(req, res) {
+  res.status(200).json({
     message: "🚀 Hello from /api/hello",
+    method: req.method,
     time: new Date().toISOString()
   });
-});
-
-export default router;
+}
