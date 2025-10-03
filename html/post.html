@@ -1,0 +1,157 @@
+<!doctype html>
+
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Post Proxy Client</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;direction:rtl;padding:18px}
+    label{display:block;margin-top:12px;font-weight:600}
+    input,textarea,button{width:100%;box-sizing:border-box;padding:8px;margin-top:6px;border:1px solid #ddd;border-radius:6px}
+    textarea{min-height:100px;font-family:monospace}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    pre{background:#0b0b0b;color:#e6e6e6;padding:12px;border-radius:8px;overflow:auto}
+    .panel{margin-top:12px;padding:12px;border:1px solid #eee;border-radius:8px}
+    img.preview{max-width:100%;height:auto;border-radius:6px}
+    .small{font-size:13px;color:#666}
+  </style>
+</head>
+<body>
+  <h1>واجهة تشغيل الـ API (postProxy)</h1>
+  <p class="small">أدخل البيانات ثم اضغط <strong>إرسال</strong>. هذه الصفحة ترسل POST إلى <code>/api/postProxy</code>.</p><label>رابط الـ API الهدف (targetUrl)</label> <input id="targetUrl" placeholder="مثال: https://example.com/endpoint" />
+
+<label>الرأس (headers) كـ JSON (اختياري)</label>
+
+  <textarea id="headers" placeholder='مثال: {"Content-Type": "application/json"}'></textarea><label>الرسالة (message) — يمكن أن تكون JSON أو نص</label>
+
+  <textarea id="message" placeholder='مثال: {"hello":"world"} أو نص عادي'></textarea>  <div class="row">
+    <div>
+      <label>نوع المحتوى المرسل (Content-Type)</label>
+      <input id="contentType" value="application/json" />
+    </div>
+    <div>
+      <label>توقيت المهلة (ms) — 0 = لا مهلة</label>
+      <input id="timeout" type="number" value="0" />
+    </div>
+  </div><button id="send">إرسال POST عبر cloudscraper</button>
+
+  <div class="panel" id="resultPanel" style="display:none">
+    <h3>النتيجة</h3>
+    <div><strong>الحالة:</strong> <span id="status"></span></div>
+    <div><strong>نوع المحتوى:</strong> <span id="ctype"></span></div>
+    <div><strong>الرؤوس (headers):</strong></div>
+    <pre id="headersOut">{}</pre><div id="bodyArea">
+  <h4>المحتوى:</h4>
+  <div id="textResult" style="display:none"><pre id="textOut"></pre></div>
+  <div id="jsonResult" style="display:none"><pre id="jsonOut"></pre></div>
+  <div id="imageResult" style="display:none"><img id="imgOut" class="preview" /></div>
+  <div id="otherResult" style="display:none"><a id="downloadLink" download>تحميل المحتوى</a></div>
+</div>
+
+  </div>  <script>
+    const sendBtn = document.getElementById('send');
+    const targetInput = document.getElementById('targetUrl');
+    const headersInput = document.getElementById('headers');
+    const messageInput = document.getElementById('message');
+    const contentTypeInput = document.getElementById('contentType');
+    const timeoutInput = document.getElementById('timeout');
+
+    const resultPanel = document.getElementById('resultPanel');
+    const statusEl = document.getElementById('status');
+    const ctypeEl = document.getElementById('ctype');
+    const headersOut = document.getElementById('headersOut');
+    const textOut = document.getElementById('textOut');
+    const jsonOut = document.getElementById('jsonOut');
+    const imgOut = document.getElementById('imgOut');
+    const downloadLink = document.getElementById('downloadLink');
+    const textResult = document.getElementById('textResult');
+    const jsonResult = document.getElementById('jsonResult');
+    const imageResult = document.getElementById('imageResult');
+    const otherResult = document.getElementById('otherResult');
+
+    function hideAllBodies(){
+      textResult.style.display = 'none';
+      jsonResult.style.display = 'none';
+      imageResult.style.display = 'none';
+      otherResult.style.display = 'none';
+    }
+
+    sendBtn.addEventListener('click', async () => {
+      const targetUrl = targetInput.value.trim();
+      if (!targetUrl) return alert('ادخل targetUrl');
+
+      let headers = {};
+      try{ headers = headersInput.value.trim() ? JSON.parse(headersInput.value) : {}; }
+      catch(e){ return alert('خطأ في صيغة JSON للرؤوس'); }
+
+      let messageVal = messageInput.value;
+      const ct = (contentTypeInput.value || 'application/json').toLowerCase();
+      let bodyToSend;
+
+      if (ct.includes('application/json')){
+        try { bodyToSend = JSON.stringify( messageVal ? JSON.parse(messageVal) : {} ); }
+        catch { bodyToSend = JSON.stringify(messageVal); }
+      } else {
+        bodyToSend = messageVal || '';
+      }
+
+      const payload = { targetUrl, message: bodyToSend, headers: headers };
+
+      resultPanel.style.display = 'block';
+      statusEl.textContent = 'جارٍ الإرسال...';
+      ctypeEl.textContent = '';
+      headersOut.textContent = '{}';
+      hideAllBodies();
+
+      try{
+        const controller = new AbortController();
+        const tmo = parseInt(timeoutInput.value) || 0;
+        if (tmo > 0) setTimeout(()=>controller.abort(), tmo);
+
+        const resp = await fetch('/api/postProxy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          signal: controller.signal
+        });
+
+        statusEl.textContent = resp.status + ' ' + resp.statusText;
+        const ctype = resp.headers.get('content-type') || '';
+        ctypeEl.textContent = ctype;
+
+        const hdrs = {};
+        for (const pair of resp.headers.entries()) hdrs[pair[0]] = pair[1];
+        headersOut.textContent = JSON.stringify(hdrs, null, 2);
+
+        const buf = await resp.arrayBuffer();
+        const blob = new Blob([buf]);
+
+        if (ctype.includes('application/json')){
+          try{
+            const text = await blob.text();
+            jsonOut.textContent = JSON.stringify(JSON.parse(text), null, 2);
+            jsonResult.style.display = 'block';
+          }catch(e){ textOut.textContent = await blob.text(); textResult.style.display = 'block'; }
+        } else if (ctype.startsWith('text/') || ctype === ''){
+          textOut.textContent = await blob.text();
+          textResult.style.display = 'block';
+        } else if (ctype.startsWith('image/')){
+          const url = URL.createObjectURL(blob);
+          imgOut.src = url;
+          imageResult.style.display = 'block';
+        } else {
+          const url = URL.createObjectURL(blob);
+          downloadLink.href = url;
+          downloadLink.textContent = 'تحميل الملف (' + (ctype || 'binary') + ')';
+          otherResult.style.display = 'block';
+        }
+
+      }catch(err){
+        statusEl.textContent = 'خطأ: ' + err.message;
+        textOut.textContent = String(err);
+        textResult.style.display = 'block';
+      }
+    });
+  </script></body>
+  </html>
