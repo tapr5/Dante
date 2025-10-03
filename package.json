@@ -1,11 +1,12 @@
-import express from "express";
-const router = express.Router();
-
-router.get("/", (req, res) => {
-  res.json({
-    message: "🚀 Hello from /api/hello",
-    time: new Date().toISOString()
-  });
-});
-
-export default router;
+{
+  "name": "my-vercel-app",
+  "version": "1.0.0",
+  "description": "Static HTML + API on Vercel",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
