@@ -1,12 +1,11 @@
-{
-  "name": "vercel-api-demo",
-  "version": "1.0.0",
-  "description": "Simple API project on Vercel",
-  "main": "index.js",
-  "scripts": {
-    "start": "node hello.js"
-  },
-  "dependencies": {
-    "express": "^4.19.2"
-  }
-}
+import express from "express";
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.json({
+    message: "🚀 Hello from /api/hello",
+    time: new Date().toISOString()
+  });
+});
+
+export default router;
