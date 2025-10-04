@@ -18,8 +18,15 @@ export default async function handler(req, res) {
       }
     );
 
-    // نرجع الرد الخام بالكامل بدون أي فلترة
-    return res.status(200).send(response.data);
+    let result = response.data;
+
+    // إذا كان هناك akitude أضف الرابط الكامل تلقائيًا
+    if (result.akitude) {
+      result.akitude_url = `https://ar.akinator.com/assets/img/akitudes_520x650/${result.akitude}`;
+    }
+
+    // نرجع الرد مع الرابط الجديد إذا كان موجود
+    return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
