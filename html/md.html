@@ -2,20 +2,23 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>Akinator Full JSON Viewer</title>
+  <title>Akinator Full JSON Viewer + Manage Session</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
     input, button { padding: 8px; margin: 5px 0; width: 100%; }
     pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
     img { max-width: 150px; display: block; margin-top: 10px; }
+    .section { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
   </style>
 </head>
 <body>
-  <h1>Akinator Full JSON Viewer</h1>
+  <h1>Akinator Full JSON Viewer + Manage Session</h1>
 
-  <button id="startBtn">Start Game</button>
+  <div class="section">
+    <button id="startBtn">Start Game</button>
+  </div>
 
-  <div id="answerSection" style="display:none;">
+  <div class="section" id="answerSection" style="display:none;">
     <label>Step:</label>
     <input type="number" id="step" value="0" />
 
@@ -26,6 +29,9 @@
     <input type="text" id="answer" value="0" />
 
     <button id="sendAnswerBtn">Send Answer</button>
+    <button id="backBtn">Back</button>
+    <button id="listBtn">List (عدّ/اقتراحات)</button>
+    <button id="cancelBtn">Cancel Session</button>
   </div>
 
   <h2>JSON Response:</h2>
@@ -35,83 +41,88 @@
   <script>
     const startBtn = document.getElementById('startBtn');
     const sendAnswerBtn = document.getElementById('sendAnswerBtn');
+    const backBtn = document.getElementById('backBtn');
+    const listBtn = document.getElementById('listBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
     const answerSection = document.getElementById('answerSection');
     const jsonOutput = document.getElementById('jsonOutput');
     const imageContainer = document.getElementById('imageContainer');
 
+    const stepInput = document.getElementById('step');
+    const progInput = document.getElementById('progression');
+    const answerInput = document.getElementById('answer');
+
     let session = "";
     let signature = "";
 
+    function pretty(obj){ try { return JSON.stringify(obj, null, 2); } catch(e){ return String(obj); } }
+
+    async function postAPI(url, body) {
+      const formData = new URLSearchParams(body);
+      const res = await fetch(url, { method: 'POST', body: formData });
+      return res.json();
+    }
+
+    async function updateJSONDisplay(data){
+      jsonOutput.textContent = pretty(data);
+      const imgUrl = data.djinn_picture || data.photo;
+      imageContainer.innerHTML = imgUrl ? `<img src="${imgUrl}" alt="Picture"/>` : "";
+      if(data.step !== undefined) stepInput.value = data.step;
+      if(data.progression !== undefined) progInput.value = data.progression;
+    }
+
     startBtn.addEventListener('click', async () => {
       try {
-        const res = await fetch('https://dante-pi.vercel.app/api/marid', {
-          method: 'POST'
-        });
-        const data = await res.json();
+        const data = await postAPI('https://dante-pi.vercel.app/api/marid', {});
         session = data.session;
         signature = data.signature;
-
-        jsonOutput.textContent = JSON.stringify(data, null, 2);
+        await updateJSONDisplay(data);
         answerSection.style.display = 'block';
-
-        // إذا هناك صورة مارد
-        if(data.djinn_picture){
-          imageContainer.innerHTML = `<img src="${data.djinn_picture}" alt="Djinn Picture"/>`;
-        } else {
-          imageContainer.innerHTML = "";
-        }
-
-        // ضبط step و progression تلقائيًا
-        if(data.step !== undefined) document.getElementById('step').value = data.step;
-        if(data.progression !== undefined) document.getElementById('progression').value = data.progression;
-
-      } catch(err){
-        jsonOutput.textContent = "Error: " + err.message;
-      }
+      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
     });
 
     sendAnswerBtn.addEventListener('click', async () => {
       try {
-        const step = document.getElementById('step').value;
-        const progression = document.getElementById('progression').value;
-        const answer = document.getElementById('answer').value;
-
-        const formData = new URLSearchParams({
-          step,
-          progression,
-          answer,
+        const body = {
+          step: stepInput.value,
+          progression: progInput.value,
+          answer: answerInput.value,
           session,
           signature,
           cm: "false",
           sid: "NaN",
           question_filter: "string",
           step_last_proposition: ""
-        });
+        };
+        const data = await postAPI('https://dante-pi.vercel.app/api/marid1', body);
+        await updateJSONDisplay(data);
+      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+    });
 
-        const res = await fetch('https://dante-pi.vercel.app/api/marid1', {
-          method: 'POST',
-          body: formData
-        });
+    // ← تم تعديل هذا ليستخدم marid2
+    backBtn.addEventListener('click', async () => {
+      try {
+        const body = { step: stepInput.value, progression: progInput.value, session, signature, cm: "false" };
+        const data = await postAPI('https://dante-pi.vercel.app/api/marid2', body);
+        await updateJSONDisplay(data);
+      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+    });
 
-        const data = await res.json();
-        jsonOutput.textContent = JSON.stringify(data, null, 2);
+    listBtn.addEventListener('click', async () => {
+      try {
+        const body = { session, signature, step: stepInput.value };
+        const data = await postAPI('https://dante-pi.vercel.app/api/list', body);
+        await updateJSONDisplay(data);
+      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+    });
 
-        // إذا هناك صورة (مارد أو شخصية)
-        if(data.djinn_picture){
-          imageContainer.innerHTML = `<img src="${data.djinn_picture}" alt="Djinn Picture"/>`;
-        } else if(data.photo){
-          imageContainer.innerHTML = `<img src="${data.photo}" alt="Character Picture"/>`;
-        } else {
-          imageContainer.innerHTML = "";
-        }
-
-        // ضبط step و progression تلقائيًا للسؤال التالي
-        if(data.step !== undefined) document.getElementById('step').value = data.step;
-        if(data.progression !== undefined) document.getElementById('progression').value = data.progression;
-
-      } catch(err){
-        jsonOutput.textContent = "Error: " + err.message;
-      }
+    cancelBtn.addEventListener('click', async () => {
+      try {
+        const body = { session, signature };
+        const data = await postAPI('https://dante-pi.vercel.app/api/cancel', body);
+        await updateJSONDisplay(data);
+        answerSection.style.display = 'none';
+      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
     });
   </script>
 </body>
