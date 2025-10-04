@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="utf-8" />
+  <title>Akinator Proxy UI</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;direction:rtl}
+    body{max-width:980px;margin:18px auto;padding:16px}
+    h1{font-size:20px;margin:0 0 12px}
+    .row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    input,select,textarea,button{padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px}
+    input,select{min-width:140px}
+    textarea{width:100%;height:120px;resize:vertical}
+    button{cursor:pointer;background:#0366d6;color:white;border:none}
+    button.secondary{background:#6c757d}
+    pre{background:#0f1724;color:#e6eef8;padding:12px;border-radius:8px;overflow:auto;white-space:pre-wrap}
+    .info{font-size:13px;color:#444;margin-bottom:8px}
+    .img-wrap img{max-width:220px;border-radius:8px;margin-top:8px}
+    label{font-size:13px;color:#222}
+    .flex{display:flex;gap:8px;align-items:center}
+    .small{font-size:13px;color:#666}
+  </style>
+</head>
+<body>
+  <h1>واجهة Akinator (Proxy واحد)</h1>
+  <p class="info">هذه الواجهة تتعامل مع الـ API: <code>https://dante-pi.vercel.app/api/akilnator</code><br>اختر العملية (start, answer, back, list, cancel) ثم اضغط إرسال. الرد سيعرض كما هو (RAW JSON).</p>
+
+  <div class="row">
+    <label for="action">اختر العملية:</label>
+    <select id="action">
+      <option value="start">start (ابدأ)</option>
+      <option value="answer" selected>answer (أجب)</option>
+      <option value="back">back (رجوع)</option>
+      <option value="list">list (عدّ/اقتراحات)</option>
+      <option value="cancel">cancel (حذف جلسة)</option>
+    </select>
+
+    <label for="server">srv (لـ list/cancel مثلاً srv12):</label>
+    <input id="server" placeholder="مثال: srv12" />
+
+    <button id="doAction">إرسال</button>
+    <button id="doRaw" class="secondary">إرسال Body مخصص</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 360px;gap:12px">
+    <div>
+      <div style="border:1px solid #eee;padding:10px;border-radius:8px;margin-bottom:10px">
+        <div class="flex" style="gap:12px;flex-wrap:wrap">
+          <div style="flex:1">
+            <label>session</label>
+            <input id="session" placeholder="session من start" />
+          </div>
+          <div style="flex:1">
+            <label>signature</label>
+            <input id="signature" placeholder="signature من start" />
+          </div>
+          <div style="width:120px">
+            <label>step</label>
+            <input id="step" type="number" value="0" />
+          </div>
+          <div style="width:120px">
+            <label>progression</label>
+            <input id="progression" value="0.0" />
+          </div>
+          <div style="width:160px">
+            <label>answer (0..4)</label>
+            <input id="answer" value="0" />
+          </div>
+        </div>
+
+        <div style="margin-top:10px">
+          <label>body مخصص (JSON) — اختياري (إن كتبت هنا سيتم إرساله كما هو)</label>
+          <textarea id="customBody" placeholder='مثال: {"step":"0","answer":"0","session":"...","signature":"..."}'></textarea>
+        </div>
+      </div>
+
+      <div style="margin-bottom:8px" class="small">
+        ملاحظات: <strong>start</strong> يرسل <code>{cm: "false", sid: "1"}</code> عادة.  
+        <strong>answer</strong> يرسل: <code>{step, progression, answer, session, signature, cm, sid, question_filter, step_last_proposition}</code>.
+      </div>
+
+      <h3>نتيجة JSON خام:</h3>
+      <pre id="jsonOutput">{}</pre>
+    </div>
+
+    <div>
+      <div style="border:1px solid #eee;padding:10px;border-radius:8px">
+        <h3>الصور</h3>
+        <div class="img-wrap" id="imageContainer">لا توجد صور حالياً</div>
+        <hr style="margin:12px 0" />
+        <h3>تحكم سريع</h3>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button id="btnStart">Start (ابدأ)</button>
+          <button id="btnAnswer">Answer (أجب)</button>
+          <button id="btnBack" class="secondary">Back (رجوع)</button>
+          <button id="btnList" class="secondary">List (عدّ/اقتراحات)</button>
+          <button id="btnCancel" class="secondary">Cancel (حذف جلسة)</button>
+          <button id="btnClear" class="secondary">مسح الحقول والنتيجة</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://dante-pi.vercel.app/api/akilnator";
+
+    const el = id => document.getElementById(id);
+    const jsonOutput = el("jsonOutput");
+    const imageContainer = el("imageContainer");
+    const sessionInput = el("session");
+    const signatureInput = el("signature");
+    const stepInput = el("step");
+    const progInput = el("progression");
+    const answerInput = el("answer");
+    const actionSelect = el("action");
+    const serverInput = el("server");
+    const customBody = el("customBody");
+
+    function pretty(obj){
+      try { return JSON.stringify(obj, null, 2); } catch(e){ return String(obj); }
+    }
+
+    async function sendProxy(action, body = {}, server = "") {
+      const payload = { action, body };
+      if (server) payload.server = server;
+
+      jsonOutput.textContent = "Loading...";
+      imageContainer.innerHTML = "جاري التحميل...";
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        // حاول نعرض الجسم الكامل: قد يكون JSON أو نص
+        let data;
+        const ct = res.headers.get("content-type") || "";
+        if (ct.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const text = await res.text();
+          try { data = JSON.parse(text); } catch(e) { data = text; }
+        }
+
+        jsonOutput.textContent = pretty(data);
+
+        // تحديث الحقول الموجودة تلقائياً لو موجودة في الرد
+        if (data.session) sessionInput.value = data.session;
+        if (data.signature) signatureInput.value = data.signature;
+        if (data.step !== undefined) stepInput.value = data.step;
+        if (data.progression !== undefined) progInput.value = data.progression;
+
+        // عرض الصور (djinn_picture أو photo أو absolute_picture_path)
+        const imgUrl = data.djinn_picture || data.photo || (data.parameters && data.parameters.elements && data.parameters.elements[0] && data.parameters.elements[0].element && data.parameters.elements[0].element.absolute_picture_path) || null;
+        if (imgUrl) {
+          imageContainer.innerHTML = `<img src="${imgUrl}" alt="image" onerror="this.style.display='none'">`;
+        } else {
+          imageContainer.innerHTML = "لا توجد صور في هذا الرد";
+        }
+
+      } catch (err) {
+        jsonOutput.textContent = JSON.stringify({ error: err.message }, null, 2);
+        imageContainer.innerHTML = "خطأ في الاتصال";
+      }
+    }
+
+    // زر الإرسال العام — يقرأ action ويحاول بناء body تلقائياً إلا إذا كتبت body مخصص
+    el("doAction").addEventListener("click", () => {
+      const action = actionSelect.value;
+      const server = serverInput.value.trim();
+      // إذا المستخدم أعطى body مخصص، استخدمه كما هو
+      const custom = customBody.value.trim();
+      if (custom) {
+        try {
+          const parsed = JSON.parse(custom);
+          sendProxy(action, parsed, server);
+        } catch(e) {
+          alert("الـ custom body غير صالح JSON");
+        }
+        return;
+      }
+
+      // بناء body افتراضي حسب العملية
+      if (action === "start") {
+        sendProxy("start", { cm: "false", sid: "1" }, server);
+      } else if (action === "answer") {
+        sendProxy("answer", {
+          step: String(stepInput.value || "0"),
+          progression: String(progInput.value || "0.0"),
+          answer: String(answerInput.value || "0"),
+          session: String(sessionInput.value || ""),
+          signature: String(signatureInput.value || ""),
+          cm: "false",
+          sid: "NaN",
+          question_filter: "string",
+          step_last_proposition: ""
+        }, server);
+      } else if (action === "back") {
+        sendProxy("back", {
+          step: String(stepInput.value || "0"),
+          progression: String(progInput.value || "0.0"),
+          session: String(sessionInput.value || ""),
+          signature: String(signatureInput.value || ""),
+          cm: "false"
+        }, server);
+      } else if (action === "list") {
+        sendProxy("list", {
+          session: String(sessionInput.value || ""),
+          signature: String(signatureInput.value || ""),
+          step: String(stepInput.value || "0")
+        }, server);
+      } else if (action === "cancel") {
+        sendProxy("cancel", {
+          session: String(sessionInput.value || ""),
+          signature: String(signatureInput.value || "")
+        }, server);
+      }
+    });
+
+    // زر إرسال body مخصص مباشرة
+    el("doRaw").addEventListener("click", () => {
+      const custom = customBody.value.trim();
+      const server = serverInput.value.trim();
+      if (!custom) return alert("اكتب JSON في حقل body المخصص");
+      let parsed;
+      try { parsed = JSON.parse(custom); } catch(e){ return alert("JSON غير صالح"); }
+      const action = actionSelect.value || "answer";
+      sendProxy(action, parsed, server);
+    });
+
+    // أزرار سريعة
+    el("btnStart").addEventListener("click", () => {
+      actionSelect.value = "start";
+      el("doAction").click();
+    });
+    el("btnAnswer").addEventListener("click", () => {
+      actionSelect.value = "answer";
+      el("doAction").click();
+    });
+    el("btnBack").addEventListener("click", () => {
+      actionSelect.value = "back";
+      el("doAction").click();
+    });
+    el("btnList").addEventListener("click", () => {
+      actionSelect.value = "list";
+      el("doAction").click();
+    });
+    el("btnCancel").addEventListener("click", () => {
+      actionSelect.value = "cancel";
+      el("doAction").click();
+    });
+    el("btnClear").addEventListener("click", () => {
+      sessionInput.value = "";
+      signatureInput.value = "";
+      stepInput.value = 0;
+      progInput.value = "0.0";
+      answerInput.value = 0;
+      customBody.value = "";
+      jsonOutput.textContent = "{}";
+      imageContainer.innerHTML = "لا توجد صور حالياً";
+    });
+
+    // اختصار: إذا فتح الصفحة جرب start تلقائياً؟ لا — نترك المستخدم يضغط
+  </script>
+</body>
+</html>
