@@ -94,4 +94,4 @@ export default async function handler(req, res) {
       .status(500)
       .json({ error: "حدث خطأ أثناء المعالجة", details: err.message });
   }
-      }
+}
