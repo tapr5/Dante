@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>Akinator Test</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+  button { margin: 5px; padding: 10px 15px; }
+  input { padding: 5px; width: 50px; }
+  #question { margin: 20px 0; font-size: 18px; font-weight: bold; }
+</style>
+</head>
+<body>
+
+<h1>اختبار Akinator</h1>
+
+<div>
+  <button id="startBtn">Start Game</button>
+  <button id="backBtn" disabled>Back</button>
+</div>
+
+<div id="question">السؤال سيظهر هنا بعد البدء...</div>
+
+<div>
+  <label>إجابة (0:نعم, 1:لا, 2:لا أعرف, 3:ربما, 4:ربما لا)</label>
+  <input type="number" id="answerInput" min="0" max="4">
+  <button id="answerBtn" disabled>Answer</button>
+</div>
+
+<div id="result" style="margin-top: 20px;"></div>
+
+<script>
+let session = "";
+let signature = "";
+let step = 0;
+let progression = 0;
+let childMode = "false";
+
+const startBtn = document.getElementById("startBtn");
+const backBtn = document.getElementById("backBtn");
+const answerBtn = document.getElementById("answerBtn");
+const answerInput = document.getElementById("answerInput");
+const questionDiv = document.getElementById("question");
+const resultDiv = document.getElementById("result");
+
+async function startGame() {
+  const res = await fetch("https://dante-pi.vercel.app/api/marid", {
+    method: "POST",
+    body: new URLSearchParams({ cm: childMode, sid: "1" })
+  });
+  const data = await res.json();
+
+  if (data.ok) {
+    session = data.result.session;
+    signature = data.result.signature;
+    step = 0;
+    progression = 0;
+    questionDiv.textContent = data.result.question;
+    answerBtn.disabled = false;
+    backBtn.disabled = false;
+    resultDiv.textContent = "";
+  } else {
+    questionDiv.textContent = "خطأ في بدء اللعبة: " + data.error;
+  }
+}
+
+async function answerQuestion() {
+  const answer = answerInput.value;
+  if (answer === "") return alert("أدخل إجابة");
+
+  const body = {
+    step: step.toString(),
+    progression: progression.toString(),
+    answer: answer,
+    session: session,
+    signature: signature,
+    question_filter: "string",
+    sid: "NaN",
+    cm: childMode,
+    step_last_proposition: ""
+  };
+
+  const res = await fetch("https://dante-pi.vercel.app/api/marid1", {
+    method: "POST",
+    body: new URLSearchParams(body)
+  });
+  const data = await res.json();
+
+  if (data.ok && data.result.question) {
+    step = data.result.step;
+    progression = data.result.progress;
+    questionDiv.textContent = data.result.question;
+  } else if (data.ok && data.result.name) {
+    questionDiv.textContent = "لقد انتهت اللعبة!";
+    resultDiv.innerHTML = `
+      الاسم: ${data.result.name} <br>
+      الوصف: ${data.result.description} <br>
+      <img src="${data.result.photo}" width="200">
+    `;
+    answerBtn.disabled = true;
+  } else {
+    questionDiv.textContent = "خطأ: " + (data.result.error || "Unknown");
+  }
+}
+
+async function backStep() {
+  const body = {
+    step: step.toString(),
+    progression: progression.toString(),
+    session: session,
+    signature: signature,
+    cm: childMode
+  };
+
+  const res = await fetch("https://dante-pi.vercel.app/api/marid2", {
+    method: "POST",
+    body: new URLSearchParams(body)
+  });
+  const data = await res.json();
+
+  if (data.ok && data.result.question) {
+    step = data.result.step;
+    progression = data.result.progress;
+    questionDiv.textContent = data.result.question;
+    resultDiv.textContent = "";
+  } else {
+    questionDiv.textContent = "لا يمكن العودة: " + (data.result.error || "Unknown");
+  }
+}
+
+startBtn.addEventListener("click", startGame);
+answerBtn.addEventListener("click", answerQuestion);
+backBtn.addEventListener("click", backStep);
+</script>
+
+</body>
+</html>
