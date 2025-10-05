@@ -6,10 +6,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // نرسل كل البيانات كما هي إلى Akinator
+    // نرسل كل البيانات كما هي إلى Akinator (cancel_answer)
     const response = await axios.post(
-      "https://ar.akinator.com/cancel_answer", // أو game إذا تريد start
-      new URLSearchParams(req.body),    // body يجب أن يحتوي كل ما يرسله العميل
+      "https://ar.akinator.com/cancel_answer",
+      new URLSearchParams(req.body), // الـ body لازم يحتوي: step, session, signature, progression ...
       {
         headers: {
           "user-agent":
@@ -20,12 +20,12 @@ export default async function handler(req, res) {
 
     let result = response.data;
 
-    // إذا كان هناك akitude أضف الرابط الكامل تلقائيًا
+    // إذا رجع akitude نضيف رابط الصورة الكامل
     if (result.akitude) {
       result.akitude_url = `https://ar.akinator.com/assets/img/akitudes_520x650/${result.akitude}`;
     }
 
-    // نرجع الرد مع الرابط الجديد إذا كان موجود
+    // نرجع الرد للعميل
     return res.status(200).json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message });
