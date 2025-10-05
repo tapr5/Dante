@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  // ✅ CORS headers
+  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -17,22 +17,17 @@ export default async function handler(req, res) {
   try {
     const { url } = req.query;
     if (!url) {
-      return res
-        .status(400)
-        .json({ error: "يرجى تمرير رابط الحلقة (url) في query" });
+      return res.status(400).json({ error: "يرجى تمرير رابط الحلقة (url) في query" });
     }
 
-    // 1️⃣ جلب الصفحة
+    // 1️⃣ جلب الصفحة الرئيسية
     const html = await cloudscraper.get(url);
     const $ = cheerio.load(html);
 
-    // 📝 بيانات أساسية
-    const title =
-      $("title").text().replace(" - Animerco", "").trim() || "غير معروف";
-    const description =
-      $('meta[name="description"]').attr("content")?.trim() || "غير معروف";
-    const publishDate =
-      $(".publish-date").text().replace("أضيفت في", "").trim() || "غير معروف";
+    // بيانات أساسية
+    const title = $("title").text().replace(" - Animerco", "").trim() || "غير معروف";
+    const description = $('meta[name="description"]').attr("content")?.trim() || "غير معروف";
+    const publishDate = $(".publish-date").text().replace("أضيفت في", "").trim() || "غير معروف";
     const image = $('meta[property="og:image"]').attr("content") || null;
 
     // 2️⃣ استخراج روابط التحميل من الجدول
@@ -44,14 +39,19 @@ export default async function handler(req, res) {
       const quality = $(tds[2]).text().trim();
       const language = $(tds[3]).text().trim();
       const server = $(tds[1]).text().trim();
-      const waitPage = $(tds[0]).find("a").attr("href");
+      const waitLink = $(tds[0]).find("a").attr("href");
 
-      if (waitPage) {
-        downloads.push({ server, quality, language, waitPage });
-      }
+      if (!waitLink) return;
+
+      downloads.push({
+        server,
+        quality,
+        language,
+        waitPage: waitLink,
+      });
     });
 
-    // 3️⃣ فك تشفير الروابط المباشرة من صفحات الانتظار
+    // 3️⃣ جلب صفحات الانتظار واستخراج الروابط الحقيقية
     for (let d of downloads) {
       try {
         const waitHtml = await cloudscraper.get(d.waitPage);
@@ -62,13 +62,13 @@ export default async function handler(req, res) {
         } else {
           d.directLink = d.waitPage; // fallback
         }
-      } catch (e) {
-        console.error("⚠️ خطأ في جلب رابط الانتظار:", d.waitPage, e.message);
+      } catch (err) {
+        console.error("⚠️ خطأ في جلب صفحة الانتظار:", err.message);
         d.directLink = d.waitPage;
       }
     }
 
-    // 📦 النتيجة النهائية
+    // 4️⃣ النتيجة النهائية
     return res.status(200).json({
       metadata: {
         title,
@@ -84,8 +84,8 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("❌ خطأ:", err.message);
     return res.status(500).json({
-      error: "❌ حدث خطأ أثناء استخراج بيانات الحلقة",
-      details: err.message || err,
+      error: "❌ حدث خطأ أثناء المعالجة",
+      details: err.message,
     });
   }
 }
