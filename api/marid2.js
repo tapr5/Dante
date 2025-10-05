@@ -17,7 +17,7 @@ export default async function handler(req, res) {
     params.append('cm', cm || 'false');
 
     const response = await axios.post(
-      "https://ar.akinator.com/back",
+      "https://ar.akinator.com/cancel_answer",
       params.toString(), // استخدام toString() بدلاً من الكائن مباشرة
       {
         headers: {
