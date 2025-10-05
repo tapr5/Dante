@@ -5,10 +5,13 @@
   <title>Akinator Full JSON Viewer + Manage Session</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; direction: rtl; }
-    input, button { padding: 8px; margin: 5px 0; width: 100%; }
-    pre { background: #f4f4f4; padding: 10px; overflow-x: auto; }
+    input, button { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+    pre { background: #f4f4f4; padding: 10px; overflow-x: auto; border: 1px solid #ccc; border-radius: 4px; white-space: pre-wrap; word-wrap: break-word; }
     img { max-width: 150px; display: block; margin-top: 10px; }
     .section { border: 1px solid #ddd; padding: 12px; margin-bottom: 12px; border-radius: 6px; }
+    .json-header { display: flex; justify-content: space-between; align-items: center; }
+    .json-header h2 { margin: 0; }
+    .copy-button { width: auto; margin: 0; padding: 6px 12px; }
   </style>
 </head>
 <body>
@@ -34,7 +37,10 @@
     <button id="cancelBtn">Cancel Session</button>
   </div>
 
-  <h2>JSON Response:</h2>
+  <div class="json-header">
+    <h2>JSON Response:</h2>
+    <button id="copyJsonBtn" class="copy-button">Copy JSON</button>
+  </div>
   <pre id="jsonOutput">{}</pre>
   <div id="imageContainer"></div>
 
@@ -44,6 +50,7 @@
     const backBtn = document.getElementById('backBtn');
     const listBtn = document.getElementById('listBtn');
     const cancelBtn = document.getElementById('cancelBtn');
+    const copyJsonBtn = document.getElementById('copyJsonBtn'); // New Button
     const answerSection = document.getElementById('answerSection');
     const jsonOutput = document.getElementById('jsonOutput');
     const imageContainer = document.getElementById('imageContainer');
@@ -80,6 +87,18 @@
       if(data.step !== undefined) stepInput.value = data.step;
       if(data.progression !== undefined) progInput.value = data.progression;
     }
+
+    // New Function for Copying
+    copyJsonBtn.addEventListener('click', async () => {
+      try {
+        const textToCopy = jsonOutput.textContent;
+        await navigator.clipboard.writeText(textToCopy);
+        alert('JSON copied to clipboard! ✅');
+      } catch (err) {
+        console.error('Failed to copy text: ', err);
+        alert('Failed to copy JSON. Please try again or copy manually.');
+      }
+    });
 
     startBtn.addEventListener('click', async () => {
       try {
