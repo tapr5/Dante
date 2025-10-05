@@ -6,14 +6,23 @@ export default async function handler(req, res) {
   }
 
   try {
-    // نرسل البيانات إلى API العودة
+    const { step, progression, session, signature, cm } = req.body;
+
+    // إنشاء البيانات بشكل صحيح لـ application/x-www-form-urlencoded
+    const params = new URLSearchParams();
+    params.append('step', step || '0');
+    params.append('progression', progression || '0.0');
+    params.append('session', session || '');
+    params.append('signature', signature || '');
+    params.append('cm', cm || 'false');
+
     const response = await axios.post(
-      "https://ar.akinator.com/back", // رابط العودة
-      new URLSearchParams(req.body),  // body يجب أن يحتوي على step, progression, session, signature, cm
+      "https://ar.akinator.com/back",
+      params.toString(), // استخدام toString() بدلاً من الكائن مباشرة
       {
         headers: {
-          "user-agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+          "Content-Type": "application/x-www-form-urlencoded",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
         }
       }
     );
@@ -27,6 +36,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json(result);
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error("Error in back function:", err.response?.data || err.message);
+    return res.status(500).json({ 
+      error: err.response?.data?.message || err.message 
+    });
   }
 }
