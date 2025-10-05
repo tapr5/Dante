@@ -20,8 +20,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "يرجى تمرير رابط الحلقة (url) في query" });
     }
 
+    // ترميز الرابط الأساسي
+    const safeUrl = encodeURI(url);
+
+    const headers = {
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    };
+
     // 1️⃣ جلب الصفحة الرئيسية
-    const html = await cloudscraper.get(url);
+    const html = await cloudscraper.get(safeUrl, { headers });
     const $ = cheerio.load(html);
 
     // بيانات أساسية
@@ -39,9 +47,11 @@ export default async function handler(req, res) {
       const quality = $(tds[2]).text().trim();
       const language = $(tds[3]).text().trim();
       const server = $(tds[1]).text().trim();
-      const waitLink = $(tds[0]).find("a").attr("href");
-
+      let waitLink = $(tds[0]).find("a").attr("href");
       if (!waitLink) return;
+
+      // ترميز رابط الانتظار
+      waitLink = encodeURI(waitLink);
 
       downloads.push({
         server,
@@ -54,16 +64,20 @@ export default async function handler(req, res) {
     // 3️⃣ جلب صفحات الانتظار واستخراج الروابط الحقيقية
     for (let d of downloads) {
       try {
-        const waitHtml = await cloudscraper.get(d.waitPage);
+        const waitHtml = await cloudscraper.get(d.waitPage, { headers });
         const _$ = cheerio.load(waitHtml);
         const encoded = _$("#link").attr("data-url");
+
         if (encoded) {
-          d.directLink = Buffer.from(encoded, "base64").toString("utf-8");
+          // فك Base64
+          let decoded = Buffer.from(encoded, "base64").toString("utf-8");
+          // ترميز الرابط الناتج لتجنب الأحرف غير المشفرة
+          d.directLink = encodeURI(decoded);
         } else {
           d.directLink = d.waitPage; // fallback
         }
       } catch (err) {
-        console.error("⚠️ خطأ في جلب صفحة الانتظار:", err.message);
+        console.error("⚠️ خطأ في جلب رابط الانتظار:", d.waitPage, err.message);
         d.directLink = d.waitPage;
       }
     }
@@ -75,7 +89,7 @@ export default async function handler(req, res) {
         description,
         publishDate,
         image,
-        url,
+        url: safeUrl,
         scrapedAt: new Date().toISOString(),
       },
       downloads,
