@@ -1,44 +1,48 @@
+// /pages/api/marid2.js
 import axios from "axios";
 
 export default async function handler(req, res) {
+  // السماح بـ POST فقط
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
   try {
-    const { step, progression, session, signature, cm } = req.body;
+    const { session, signature, step, answer, progression, cm, sid, question_filter, step_last_proposition } = req.body;
 
-    // إنشاء البيانات بشكل صحيح لـ application/x-www-form-urlencoded
-    const params = new URLSearchParams();
-    params.append('step', step || '0');
-    params.append('progression', progression || '0.0');
-    params.append('session', session || '');
-    params.append('signature', signature || '');
-    params.append('cm', cm || 'false');
-
+    // إرسال الطلب إلى Akinator
     const response = await axios.post(
-      "https://ar.akinator.com/cancel_answer",
-      params.toString(), // استخدام toString() بدلاً من الكائن مباشرة
+      "https://ar.akinator.com/cancel_answer", // رابط إرسال الإجابة
+      {
+        session,
+        signature,
+        step,
+        answer,
+        progression,
+        cm,
+        sid,
+        question_filter,
+        step_last_proposition
+      },
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
-        }
+          "User-Agent": "Mozilla/5.0"
+        },
+        transformRequest: [(data) => {
+          // تحويل JSON إلى x-www-form-urlencoded
+          return Object.entries(data)
+            .map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`)
+            .join("&");
+        }],
       }
     );
 
-    let result = response.data;
+    // إعادة بيانات Akinator كما هي
+    res.status(200).json(response.data);
 
-    // إذا كان هناك akitude أضف الرابط الكامل تلقائيًا
-    if (result.akitude) {
-      result.akitude_url = `https://ar.akinator.com/assets/img/akitudes_520x650/${result.akitude}`;
-    }
-
-    return res.status(200).json(result);
-  } catch (err) {
-    console.error("Error in back function:", err.response?.data || err.message);
-    return res.status(500).json({ 
-      error: err.response?.data?.message || err.message 
-    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Something went wrong" });
   }
 }
