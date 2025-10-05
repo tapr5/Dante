@@ -58,8 +58,18 @@
     function pretty(obj){ try { return JSON.stringify(obj, null, 2); } catch(e){ return String(obj); } }
 
     async function postAPI(url, body) {
-      const formData = new URLSearchParams(body);
-      const res = await fetch(url, { method: 'POST', body: formData });
+      const formData = new URLSearchParams();
+      for (const key in body) {
+        formData.append(key, body[key]);
+      }
+      
+      const res = await fetch(url, { 
+        method: 'POST', 
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData 
+      });
       return res.json();
     }
 
@@ -78,7 +88,10 @@
         signature = data.signature;
         await updateJSONDisplay(data);
         answerSection.style.display = 'block';
-      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+      } catch(err){ 
+        jsonOutput.textContent = "Error: " + err.message; 
+        console.error("Start error:", err);
+      }
     });
 
     sendAnswerBtn.addEventListener('click', async () => {
@@ -96,16 +109,27 @@
         };
         const data = await postAPI('https://dante-pi.vercel.app/api/marid1', body);
         await updateJSONDisplay(data);
-      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+      } catch(err){ 
+        jsonOutput.textContent = "Error: " + err.message; 
+        console.error("Send answer error:", err);
+      }
     });
 
-    // ← تم تعديل هذا ليستخدم marid2
     backBtn.addEventListener('click', async () => {
       try {
-        const body = { step: stepInput.value, progression: progInput.value, session, signature, cm: "false" };
+        const body = { 
+          step: stepInput.value, 
+          progression: progInput.value, 
+          session, 
+          signature, 
+          cm: "false" 
+        };
         const data = await postAPI('https://dante-pi.vercel.app/api/marid2', body);
         await updateJSONDisplay(data);
-      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+      } catch(err){ 
+        jsonOutput.textContent = "Error: " + err.message; 
+        console.error("Back error:", err);
+      }
     });
 
     listBtn.addEventListener('click', async () => {
@@ -113,7 +137,10 @@
         const body = { session, signature, step: stepInput.value };
         const data = await postAPI('https://dante-pi.vercel.app/api/list', body);
         await updateJSONDisplay(data);
-      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+      } catch(err){ 
+        jsonOutput.textContent = "Error: " + err.message; 
+        console.error("List error:", err);
+      }
     });
 
     cancelBtn.addEventListener('click', async () => {
@@ -122,7 +149,10 @@
         const data = await postAPI('https://dante-pi.vercel.app/api/cancel', body);
         await updateJSONDisplay(data);
         answerSection.style.display = 'none';
-      } catch(err){ jsonOutput.textContent = "Error: " + err.message; }
+      } catch(err){ 
+        jsonOutput.textContent = "Error: " + err.message; 
+        console.error("Cancel error:", err);
+      }
     });
   </script>
 </body>
