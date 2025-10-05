@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   try {
     // نرسل كل البيانات كما هي إلى Akinator
     const response = await axios.post(
-      "https://ar.akinator.com/answer", // أو game إذا تريد start
+      "https://ar.akinator.com/cancel_answer", // أو game إذا تريد start
       new URLSearchParams(req.body),    // body يجب أن يحتوي كل ما يرسله العميل
       {
         headers: {
