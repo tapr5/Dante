@@ -1,19 +1,14 @@
-import axios from "axios";
+import cloudscraper from "cloudscraper";
 import cheerio from "cheerio";
 
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-
   const { url } = req.query;
-  if (!url || !url.startsWith("http"))
-    return res.status(400).json({ error: "الرجاء إرسال رابط أنمي صحيح (url)" });
+  if (!url) return res.status(400).json({ error: "الرجاء إرسال رابط الأنمي (url)" });
 
   try {
-    const { data } = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
-
+    const data = await cloudscraper.get(url);
     const $ = cheerio.load(data);
+
     const details = {
       type: "غير معروف",
       seasons: "غير معروف",
@@ -27,7 +22,6 @@ export default async function handler(req, res) {
     $(".media-info li").each((_, li) => {
       const label = $(li).clone().children().remove().end().text().trim();
       const val = $(li).find("span").text().trim();
-
       if (label.includes("النوع")) details.type = val;
       if (label.includes("المواسم")) details.seasons = val;
       if (label.includes("الحلقات")) details.episodes = val;
