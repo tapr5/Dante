@@ -76,9 +76,14 @@ export default async function handler(req, res) {
         } else {
           d.directLink = d.waitPage; // fallback
         }
+
+        // 🧹 حذف رابط الانتظار بعد استخراج الرابط المباشر
+        delete d.waitPage;
+
       } catch (err) {
         console.error("⚠️ خطأ في جلب رابط الانتظار:", d.waitPage, err.message);
         d.directLink = d.waitPage;
+        delete d.waitPage; // نحذفه حتى في حالة الخطأ
       }
     }
 
