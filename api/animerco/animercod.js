@@ -1,12 +1,12 @@
-import cloudscraper from "cloudscraper";
-import cheerio from "cheerio";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
 export default async function handler(req, res) {
   const { url } = req.query;
   if (!url) return res.status(400).json({ error: "الرجاء إرسال رابط الأنمي (url)" });
 
   try {
-    const data = await cloudscraper.get(url);
+    const { data } = await axios.get(url, { headers: { "User-Agent": "Mozilla/5.0" } });
     const $ = cheerio.load(data);
 
     const details = {
@@ -20,12 +20,12 @@ export default async function handler(req, res) {
     };
 
     $(".media-info li").each((_, li) => {
-      const label = $(li).clone().children().remove().end().text().trim();
+      const text = $(li).text().trim();
       const val = $(li).find("span").text().trim();
-      if (label.includes("النوع")) details.type = val;
-      if (label.includes("المواسم")) details.seasons = val;
-      if (label.includes("الحلقات")) details.episodes = val;
-      if (label.includes("مدة الحلقة")) details.episodeDuration = val;
+      if (text.includes("النوع:")) details.type = val;
+      else if (text.includes("المواسم:")) details.seasons = val;
+      else if (text.includes("الحلقات:")) details.episodes = val;
+      else if (text.includes("مدة الحلقة:")) details.episodeDuration = val;
     });
 
     $(".genres .badge").each((_, g) => details.genres.push($(g).text().trim()));
