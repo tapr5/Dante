@@ -1,11 +1,22 @@
 {
   "name": "Dante",
   "version": "1.0.0",
+  "description": "API لإزالة خلفية الصور باستخدام remove.bg",
   "type": "module",
+  "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "vercel dev"
   },
+  "keywords": [
+    "removebg",
+    "image",
+    "background-removal",
+    "express",
+    "api"
+  ],
+  "author": "Xama Mam",
+  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2",
     "cloudscraper": "^4.6.0",
@@ -13,8 +24,10 @@
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
     "body-parser": "^1.20.2",
-    "uuid": "^9.0.1",         
-    "morgan": "^1.10.0",      
-    "dotenv": "^16.4.5"       
+    "uuid": "^9.0.1",
+    "morgan": "^1.10.0",
+    "dotenv": "^16.4.5",
+    "node-fetch": "^3.3.2",
+    "form-data": "^4.0.0"
   }
 }
