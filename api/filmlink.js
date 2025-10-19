@@ -64,4 +64,4 @@ export default async function handler(req, res) {
     console.error(err)
     return res.status(500).json({ error: `⚠️ حدث خطأ أثناء الاستخراج: ${err.message}` })
   }
-    }
+}
