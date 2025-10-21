@@ -7,12 +7,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export default async function handler(req, res) {
   const { url } = req.query;
 
-  if (!url) {
+  if (!url)
     return res.status(400).json({
       error: true,
       message: "❌ يرجى تمرير ?url=<رابط_mp4upload>",
     });
-  }
 
   try {
     // 1️⃣ تحميل الصفحة الأولى
@@ -24,24 +23,18 @@ export default async function handler(req, res) {
     });
 
     const $ = cheerio.load(first.data);
-
     const op = $('input[name="op"]').val() || "download2";
     const id = $('input[name="id"]').val();
     const rand = $('input[name="rand"]').val() || "";
-    const referer = "https://animelek.live/";
-    const method_free = "Free Download";
-    const method_premium = "";
     const fname = $('input[name="fname"]').val() || "unknown.mp4";
 
-    if (!id) {
+    if (!id)
       return res.status(404).json({
         error: true,
         message: "⚠️ لم يتم العثور على معرف الملف (id) داخل الصفحة.",
       });
-    }
 
-    // ⚠️ انتظار 5 ثوانٍ لتقليد تأخير الموقع
-    await sleep(5000);
+    await sleep(5000); // انتظار تقليدي
 
     // 2️⃣ إرسال الطلب الثاني (Free Download)
     const second = await axios.post(
@@ -50,9 +43,9 @@ export default async function handler(req, res) {
         op,
         id,
         rand,
-        referer,
-        method_free,
-        method_premium,
+        referer: "https://animelek.live/",
+        method_free: "Free Download",
+        method_premium: "",
       }),
       {
         headers: {
@@ -60,22 +53,34 @@ export default async function handler(req, res) {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
           "Referer": "https://animelek.live/",
         },
+        responseType: "text", // ← مهم جدًا
+        decompress: true, // ← لفك ضغط gzip
+        maxRedirects: 5, // ← لتتبّع إعادة التوجيه التلقائية
+        validateStatus: () => true, // ← حتى نقدر نقرأ الرد أياً كان الكود
       }
     );
 
-    // 3️⃣ تحليل الصفحة الثانية لاستخراج رابط التحميل المباشر
-    const $$ = cheerio.load(second.data);
-    const directLink = $$('a.btn.btn-primary.btn-block').attr("href");
+    // 3️⃣ تحليل الردّ (مهما كان نوعه)
+    let html = second.data;
+    let directLink = null;
+
+    try {
+      const $$ = cheerio.load(html);
+      directLink = $$('a.btn.btn-primary.btn-block').attr("href") || null;
+    } catch {
+      // إذا لم يكن HTML، نخزّنه كما هو
+      html = html.toString();
+    }
 
     // 4️⃣ الرد النهائي
     return res.status(200).json({
       status: "success",
       file: fname,
       id,
-      directLink: directLink || null,
-      html: second.data,
+      directLink,
+      raw: html.substring(0, 4000), // فقط أول 4000 حرف للمعاينة
+      contentType: second.headers["content-type"],
     });
-
   } catch (err) {
     return res.status(500).json({
       error: true,
