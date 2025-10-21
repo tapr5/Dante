@@ -1,6 +1,9 @@
-// pages/api/mp4upload.js
+import https from "https";
 import axios from "axios";
 import * as cheerio from "cheerio";
+
+// إنشاء Agent لتجاهل التحقق من SSL
+const agent = new https.Agent({ rejectUnauthorized: false });
 
 export default async function handler(req, res) {
   try {
@@ -8,7 +11,6 @@ export default async function handler(req, res) {
     if (!url || !url.includes("mp4upload.com"))
       return res.status(400).json({ error: "يرجى تمرير رابط mp4upload صحيح" });
 
-    // استخراج ID من الرابط
     const match = url.match(/\/([a-zA-Z0-9]+)$/);
     const fileId = match ? match[1] : null;
     if (!fileId)
@@ -16,7 +18,6 @@ export default async function handler(req, res) {
 
     const postUrl = `https://www.mp4upload.com/${fileId}`;
 
-    // إعداد البيانات التي تُرسل في POST
     const form = new URLSearchParams({
       op: "download2",
       id: fileId,
@@ -26,7 +27,6 @@ export default async function handler(req, res) {
       method_premium: "",
     });
 
-    // تنفيذ الطلب
     const { data } = await axios.post(postUrl, form, {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -35,9 +35,9 @@ export default async function handler(req, res) {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
       },
+      httpsAgent: agent, // 👈 هنا الحل
     });
 
-    // استخراج الرابط من صفحة الرد
     const $ = cheerio.load(data);
     const directLink = $("a[href$='.mp4']").attr("href");
 
