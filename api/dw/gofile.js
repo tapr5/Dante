@@ -1,10 +1,20 @@
-// pages/api/gofile.js
 import axios from "axios";
 
 export default async function handler(req, res) {
   try {
-    const url =
-      "https://api.gofile.io/contents/iZPZN3?wt=4fd6sg89d7s6&contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1";
+    const { url } = req.query; // مثال: https://gofile.io/d/7av96X
+    if (!url) {
+      return res.status(400).json({ error: "يرجى تمرير رابط GoFile في ?url=" });
+    }
+
+    // استخراج ID من الرابط
+    const match = url.match(/\/d\/([a-zA-Z0-9]+)/);
+    if (!match) {
+      return res.status(400).json({ error: "الرابط غير صالح، لم يتم العثور على ID." });
+    }
+
+    const fileId = match[1];
+    const apiUrl = `https://api.gofile.io/contents/${fileId}?wt=4fd6sg89d7s6&contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1`;
 
     const headers = {
       Accept: "*/*",
@@ -23,11 +33,13 @@ export default async function handler(req, res) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
     };
 
-    // تنفيذ الطلب
-    const { data } = await axios.get(url, { headers });
+    const { data } = await axios.get(apiUrl, { headers });
 
-    // إرجاع النتيجة كـ JSON
-    res.status(200).json(data);
+    res.status(200).json({
+      id: fileId,
+      apiUrl,
+      data,
+    });
   } catch (error) {
     console.error("❌ خطأ في جلب بيانات GoFile:", error.message);
     res.status(500).json({
