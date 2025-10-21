@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         message: "⚠️ لم يتم العثور على معرف الملف (id) داخل الصفحة.",
       });
 
-    await sleep(5000); // انتظار تقليدي
+    await sleep(30000); // انتظار تقليدي
 
     // 2️⃣ إرسال الطلب الثاني (Free Download)
     const second = await axios.post(
