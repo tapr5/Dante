@@ -8,50 +8,68 @@ export default async function handler(req, res) {
   if (!url) {
     return res.status(400).json({
       error: true,
-      message: "يرجى تمرير ?url=<رابط_mp4upload>"
+      message: "❌ يرجى تمرير ?url=<رابط_mp4upload>",
     });
   }
 
   try {
     // 1️⃣ تحميل الصفحة الأولى
     const first = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
+      headers: { 
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Referer": url
+      },
     });
 
     const $ = cheerio.load(first.data);
-    const op = $('input[name="op"]').val();
-    const id = $('input[name="id"]').val();
-    const fname = $('input[name="fname"]').val();
 
-    if (!id || !fname) {
+    // استخراج القيم الأساسية من الفورم
+    const op = $('input[name="op"]').val() || "download2";
+    const id = $('input[name="id"]').val();
+    const rand = $('input[name="rand"]').val() || "";
+    const referer = url;
+    const method_free = "Free Download";
+    const method_premium = "";
+    const fname = $('input[name="fname"]').val() || "unknown.mp4";
+
+    if (!id) {
       return res.status(404).json({
         error: true,
-        message: "لم يتم العثور على بيانات التحميل داخل الصفحة."
+        message: "⚠️ لم يتم العثور على معرف الملف (id) داخل الصفحة.",
       });
     }
 
-    // 2️⃣ محاكاة الضغط على زر Free Download
+    // 2️⃣ محاكاة الضغط على "Free Download"
     const second = await axios.post(
       url,
       new URLSearchParams({
         op,
         id,
-        fname,
-        method_free: "Free Download",
+        rand,
+        referer,
+        method_free,
+        method_premium,
       }),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "Mozilla/5.0",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          "Referer": url,
         },
       }
     );
 
-    // 3️⃣ إعادة HTML داخل JSON
+    // 3️⃣ تحليل الصفحة الثانية لاستخراج رابط التحميل المباشر
+    const $$ = cheerio.load(second.data);
+    const directLink = $$('a.btn.btn-primary.btn-block').attr("href");
+
+    // 4️⃣ الرد النهائي
     return res.status(200).json({
       status: "success",
       file: fname,
-      html: second.data, // الصفحة الكاملة كما هي
+      id,
+      directLink: directLink || null,
+      html: second.data, // HTML الكامل كمرجع
     });
 
   } catch (err) {
