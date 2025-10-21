@@ -2,6 +2,8 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
 export default async function handler(req, res) {
   const { url } = req.query;
 
@@ -15,19 +17,18 @@ export default async function handler(req, res) {
   try {
     // 1️⃣ تحميل الصفحة الأولى
     const first = await axios.get(url, {
-      headers: { 
+      headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        "Referer": url
+        "Referer": "https://animelek.live/",
       },
     });
 
     const $ = cheerio.load(first.data);
 
-    // استخراج القيم الأساسية من الفورم
     const op = $('input[name="op"]').val() || "download2";
     const id = $('input[name="id"]').val();
     const rand = $('input[name="rand"]').val() || "";
-    const referer = url;
+    const referer = "https://animelek.live/";
     const method_free = "Free Download";
     const method_premium = "";
     const fname = $('input[name="fname"]').val() || "unknown.mp4";
@@ -39,7 +40,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2️⃣ محاكاة الضغط على "Free Download"
+    // ⚠️ انتظار 5 ثوانٍ لتقليد تأخير الموقع
+    await sleep(5000);
+
+    // 2️⃣ إرسال الطلب الثاني (Free Download)
     const second = await axios.post(
       url,
       new URLSearchParams({
@@ -54,7 +58,7 @@ export default async function handler(req, res) {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-          "Referer": url,
+          "Referer": "https://animelek.live/",
         },
       }
     );
@@ -69,7 +73,7 @@ export default async function handler(req, res) {
       file: fname,
       id,
       directLink: directLink || null,
-      html: second.data, // HTML الكامل كمرجع
+      html: second.data,
     });
 
   } catch (err) {
