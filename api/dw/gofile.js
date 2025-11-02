@@ -15,10 +15,9 @@ export default async function handler(req, res) {
 
     const fileId = match[1];
     const apiUrl = `https://api.gofile.io/contents/${fileId}?wt=4fd6sg89d7s6&contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1`;
-
     const headers = {
       Accept: "*/*",
-      Authorization: "Bearer KP7yA28ChZttCtRCfHwq2J5m8ud2jXfh",
+      Authorization: "Bearer Lg4kqBlLGL7tMqq7XT4qP4wXGctI0hOT",
       "User-Agent":
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
     };
