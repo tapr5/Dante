@@ -1,7 +1,6 @@
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { Buffer } from "buffer";
-import * as re from "re"; // استخدام مكتبة re للتعابير النمطية
 
 // تعيين User-Agent لمحاكاة متصفح حقيقي
 const HEADERS = {
@@ -25,6 +24,7 @@ function toArray(hexStr) {
     return bytesList;
 }
 
+
 /**
  * دالة فك التشفير (XOR).
  * @param {string} rawHex - البيانات المشفرة بصيغة سداسية عشرية.
@@ -42,6 +42,7 @@ function process(rawHex, secret) {
     }
     return out;
 }
+
 
 /**
  * استخراج المتغيرات المشفرة من كود JavaScript المضمن.
@@ -62,37 +63,38 @@ function extractJsVars(scriptContent) {
         const regex = new RegExp(`var\\s+${name}\\s*=\\s*(\\[.*?\\]|{.*?}|".*?"|'.*?');`, 's');
         const match = scriptContent.match(regex);
         
-        if (match) {
-            let valueStr = match[1].replace(/\n|\t/g, '').trim();
-            
-            // إذا كانت القيمة محاطة بعلامات اقتباس، قم بإزالتها
-            if (valueStr.startsWith(`"`) && valueStr.endsWith(`"`)) {
-                valueStr = valueStr.substring(1, valueStr.length - 1);
-            } else if (valueStr.startsWith(`'`) && valueStr.endsWith(`'`)) {
-                valueStr = valueStr.substring(1, valueStr.length - 1);
-            }
-            
-            // محاولة تحليل القيمة كـ JSON
-            try {
-                // استبدال الأقواس المفردة بأقواس مزدوجة للتحليل الصحيح
-                const valueStrJson = valueStr.replace(/'/g, '"');
-                varsData[name] = JSON.parse(valueStrJson);
-            } catch (e) {
-                // إذا فشل التحليل كـ JSON، قم بتخزين القيمة كنص خام
-                varsData[name] = valueStr;
-            }
-        }
+        if (match) {  
+             let valueStr = match[1].replace(/\n|\t/g, '').trim();  
+
+             // إذا كانت القيمة محاطة بعلامات اقتباس، قم بإزالتها  
+             if (valueStr.startsWith(`"`) && valueStr.endsWith(`"`)) {  
+                 valueStr = valueStr.substring(1, valueStr.length - 1);  
+             } else if (valueStr.startsWith(`'`) && valueStr.endsWith(`'`)) {  
+                 valueStr = valueStr.substring(1, valueStr.length - 1);  
+             }  
+
+             // محاولة تحليل القيمة كـ JSON  
+             try {  
+                 // استبدال الأقواس المفردة بأقواس مزدوجة للتحليل الصحيح  
+                 const valueStrJson = valueStr.replace(/'/g, '"');  
+                 varsData[name] = JSON.parse(valueStrJson);  
+             } catch (e) {  
+                 // إذا فشل التحليل كـ JSON، قم بتخزين القيمة كنص خام  
+                 varsData[name] = valueStr;  
+             }  
+         }
     }
     
     return varsData;
 }
+
 
 /**
  * العملية الرئيسية لفك تشفير الروابط.
  * @param {string} url - رابط الحلقة.
  * @returns {Promise<Array<{server: string, link: string}>>} - قائمة بالروابط المفكوكة.
  */
-async function decryptWitanimeLinks(url) {
+export async function decryptWitanimeLinks(url) {
     let htmlContent;
     try {
         const response = await axios.get(url, { headers: HEADERS, timeout: 15000 });
@@ -120,7 +122,7 @@ async function decryptWitanimeLinks(url) {
     if (typeof secretB64 !== 'string') {
         throw new Error("صيغة المفتاح السري غير مدعومة.");
     }
-        
+    
     let secret;
     try {
         secret = Buffer.from(secretB64, 'base64').toString('utf-8');
@@ -150,40 +152,40 @@ async function decryptWitanimeLinks(url) {
         if (!varsData[pVarName]) {
             continue;
         }
-            
-        const chunks = varsData[pVarName];
         
-        const seqRawData = varsData._s;
-        if (!Array.isArray(seqRawData) || i >= seqRawData.length) {
-            continue;
-        }
-        const seqRaw = seqRawData[i];
+        const chunks = varsData[pVarName];  
         
-        // فك تشفير التسلسل (seq)
-        let seq;
-        try {
-            const seqJson = process(seqRaw, secret);
-            seq = JSON.parse(seqJson);
-        } catch (e) {
-            continue;
-        }
-        
-        // فك تشفير الأجزاء (chunks)
-        const decryptedChunks = chunks.map(chunk => process(chunk, secret));
-        
-        // ترتيب الأجزاء
-        const arranged = new Array(seq.length).fill('');
-        for (let j = 0; j < seq.length; j++) {
-            if (seq[j] < decryptedChunks.length) {
-                arranged[seq[j]] = decryptedChunks[j];
-            }
-        }
-        
-        const finalLink = arranged.join("");
-        
-        // إضافة الرابط إلى القائمة
-        const name = serverNames[i] || `رابط ${i + 1}`;
-        finalLinks.push({ server: name, link: finalLink });
+         const seqRawData = varsData._s;  
+         if (!Array.isArray(seqRawData) || i >= seqRawData.length) {  
+             continue;  
+         }  
+         const seqRaw = seqRawData[i];  
+
+         // فك تشفير التسلسل (seq)  
+         let seq;  
+         try {  
+             const seqJson = process(seqRaw, secret);  
+             seq = JSON.parse(seqJson);  
+         } catch (e) {  
+             continue;  
+         }  
+
+         // فك تشفير الأجزاء (chunks)  
+         const decryptedChunks = chunks.map(chunk => process(chunk, secret));  
+
+         // ترتيب الأجزاء  
+         const arranged = new Array(seq.length).fill('');  
+         for (let j = 0; j < seq.length; j++) {  
+             if (seq[j] < decryptedChunks.length) {  
+                 arranged[seq[j]] = decryptedChunks[j];  
+             }  
+         }  
+
+         const finalLink = arranged.join("");  
+
+         // إضافة الرابط إلى القائمة  
+         const name = serverNames[i] || `رابط ${i + 1}`;  
+         finalLinks.push({ server: name, link: finalLink });
     }
 
     if (finalLinks.length === 0) {
@@ -193,35 +195,36 @@ async function decryptWitanimeLinks(url) {
     return finalLinks;
 }
 
+
 export default async function handler(req, res) {
     // التأكد من أن الطلب هو GET
     if (req.method !== 'GET') {
         return res.status(405).json({ error: "Method Not Allowed" });
     }
     
-    // استخراج الرابط من معاملات الاستعلام
-    const { url } = req.query;
-    
-    if (!url) {
-        return res.status(400).json({ error: "الرجاء إرسال رابط الحلقة (url) كمعامل استعلام." });
-    }
+    // استخراج الرابط من معاملات الاستعلام  
+    const { url } = req.query;  
+      
+    if (!url) {  
+        return res.status(400).json({ error: "الرجاء إرسال رابط الحلقة (url) كمعامل استعلام." });  
+    }  
 
-    try {
-        const links = await decryptWitanimeLinks(url);
-        
-        // إرجاع الروابط المفكوكة
-        res.status(200).json({
-            success: true,
-            episodeUrl: url,
-            links: links
-        });
-        
-    } catch (e) {
-        // إرجاع رسالة خطأ واضحة
-        res.status(500).json({ 
-            success: false,
-            error: "فشل في فك تشفير الروابط", 
-            details: e.message 
-        });
+    try {  
+        const links = await decryptWitanimeLinks(url);  
+          
+        // إرجاع الروابط المفكوكة  
+        res.status(200).json({  
+            success: true,  
+            episodeUrl: url,  
+            links: links  
+        });  
+          
+    } catch (e) {  
+        // إرجاع رسالة خطأ واضحة  
+        res.status(500).json({   
+            success: false,  
+            error: "فشل في فك تشفير الروابط",   
+            details: e.message   
+        });  
     }
 }
