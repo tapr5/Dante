@@ -1,5 +1,5 @@
-import axios from "axios";
 import * as cheerio from "cheerio";
+import cloudscraper from "cloudscraper"; // ✅ لتجاوز Cloudflare
 
 function toArray(hexStr) {
   const bytes = [];
@@ -54,10 +54,14 @@ export async function GET(req) {
     });
 
   try {
-    const { data: html } = await axios.get(targetUrl, {
+    // ✅ استخدم cloudscraper بدلاً من axios
+    const html = await cloudscraper.get({
+      uri: targetUrl,
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+        "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
+        "Referer": "https://witanime.you/",
       },
     });
 
@@ -89,11 +93,11 @@ export async function GET(req) {
       const seq = JSON.parse(seqJson);
 
       const decryptedChunks = pVar.map((chunk) => processXOR(chunk, secret));
-
       const arranged = [];
-      for (let j = 0; j < seq.length; j++) arranged[seq[j]] = decryptedChunks[j];
 
+      for (let j = 0; j < seq.length; j++) arranged[seq[j]] = decryptedChunks[j];
       const link = arranged.join("");
+
       const name = serverNames[i] || `رابط ${i + 1}`;
       finalLinks.push({ name, link });
     }
@@ -102,10 +106,10 @@ export async function GET(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    console.error("خطأ:", err.message);
+    console.error("⚠️ خطأ:", err.message);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
-                                           }
+}
