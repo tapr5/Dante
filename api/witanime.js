@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import cloudscraper from "cloudscraper"; // ✅ لتجاوز Cloudflare
+import cloudscraper from "cloudscraper"; // لتجاوز Cloudflare
 
 function toArray(hexStr) {
   const bytes = [];
@@ -25,19 +25,25 @@ function extractVars(scriptContent) {
   const varNames = ["_m", "_t", "_s", ...Array.from({ length: 12 }, (_, i) => `_p${i}`)];
 
   for (const name of varNames) {
-    const match = scriptContent.match(new RegExp(`var\\s+${name}\\s*=\\s*(\\[.*?\\]|\\{.*?\\});`, "s"));
+    const match = scriptContent.match(
+      new RegExp(`var\\s+${name}\\s*=\\s*(\\[.*?\\]|\\{.*?\\});`, "s")
+    );
     if (match) {
       try {
+        // تنظيف النص من التعليقات أو الأحرف الزائدة
         const cleaned = match[1].replace(/\n|\t/g, "").trim();
-        varsData[name] = JSON.parse(cleaned.replace(/'/g, '"'));
+        const jsonLike = cleaned
+          .replace(/([{,])(\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$3":') // تأكد من وجود علامات اقتباس
+          .replace(/'/g, '"'); // استبدال علامات الاقتباس المفردة
+        varsData[name] = JSON.parse(jsonLike);
       } catch (e) {
-        console.warn(`❗ فشل تحليل المتغير ${name}`, e);
+        console.warn(`❗ فشل تحليل المتغير ${name}`, e.message);
       }
     }
   }
 
   if (!varsData["_m"] || !varsData["_t"] || !varsData["_s"]) {
-    throw new Error("المتغيرات الأساسية (_m, _t, _s) غير موجودة.");
+    throw new Error("المتغيرات الأساسية (_m, _t, _s) غير موجودة أو غير صالحة.");
   }
 
   return varsData;
@@ -45,35 +51,49 @@ function extractVars(scriptContent) {
 
 export async function GET(req) {
   const { searchParams } = new URL(req.url);
-  const targetUrl = searchParams.get("url");
+  let targetUrl = searchParams.get("url");
 
-  if (!targetUrl)
-    return new Response(JSON.stringify({ error: "يرجى تمرير الرابط في ?url=" }), {
+  if (!targetUrl) {
+    return new Response(JSON.stringify({ error: "❌ يرجى تمرير الرابط عبر ?url=" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });
+  }
+
+  // ✅ تأكد من ترميز الرابط (لتجنب ERR_UNESCAPED_CHARACTERS)
+  try {
+    targetUrl = encodeURI(targetUrl);
+  } catch {
+    return new Response(JSON.stringify({ error: "الرابط غير صالح." }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   try {
-    // ✅ استخدم cloudscraper بدلاً من axios
     const html = await cloudscraper.get({
       uri: targetUrl,
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "ar,en-US;q=0.9,en;q=0.8",
-        "Referer": "https://witanime.you/",
+        Referer: "https://witanime.you/",
       },
     });
 
     const $ = cheerio.load(html);
     const scriptTag = $("#lkgx-js-extra").html();
-    if (!scriptTag)
-      return new Response(JSON.stringify({ error: "لم يتم العثور على سكريبت التشفير." }), {
+
+    if (!scriptTag) {
+      return new Response(JSON.stringify({ error: "لم يتم العثور على سكريبت التشفير في الصفحة." }), {
         status: 404,
         headers: { "Content-Type": "application/json" },
       });
+    }
 
     const varsData = extractVars(scriptTag);
+
     const secretB64 = varsData["_m"].r;
     const secret = Buffer.from(secretB64, "base64").toString("utf8");
 
@@ -102,9 +122,17 @@ export async function GET(req) {
       finalLinks.push({ name, link });
     }
 
-    return new Response(JSON.stringify({ count: finalLinks.length, links: finalLinks }, null, 2), {
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify(
+        {
+          count: finalLinks.length,
+          links: finalLinks,
+        },
+        null,
+        2
+      ),
+      { headers: { "Content-Type": "application/json" } }
+    );
   } catch (err) {
     console.error("⚠️ خطأ:", err.message);
     return new Response(JSON.stringify({ error: err.message }), {
@@ -112,4 +140,4 @@ export async function GET(req) {
       headers: { "Content-Type": "application/json" },
     });
   }
-}
+    }
