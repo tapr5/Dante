@@ -96,11 +96,14 @@ function extractJsVars(scriptContent) {
  */
 export async function decryptWitanimeLinks(url) {
     let htmlContent;
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    
     try {
-        const response = await axios.get(url, { headers: HEADERS, timeout: 15000 });
+        // نستخدم الرابط الوسيط لجلب المحتوى
+        const response = await axios.get(proxyUrl, { headers: HEADERS, timeout: 15000 });
         htmlContent = response.data;
     } catch (e) {
-        throw new Error("فشل في الحصول على محتوى الصفحة أو الصفحة غير موجودة.");
+        throw new Error("فشل في الحصول على محتوى الصفحة عبر البروكسي أو الصفحة غير موجودة.");
     }
 
     const $ = cheerio.load(htmlContent);
