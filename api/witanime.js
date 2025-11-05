@@ -96,14 +96,30 @@ function extractJsVars(scriptContent) {
  */
 export async function decryptWitanimeLinks(url) {
     let htmlContent;
-    const proxyUrl = `https://api.vreden.my.id/api/v1/tools/proxy?url=${encodeURIComponent(url)}?lang=id-ID&region=hk`;
-    
+    const PROXY_FETCH_URL = `https://api.vreden.my.id/api/v1/tools/proxy?url=${encodeURIComponent(url)}&lang=id-ID&region=hk`;
+    const FETCH_TIMEOUT = 20000; // ms
+
     try {
-        // نستخدم الرابط الوسيط لجلب المحتوى
-        const response = await axios.get(proxyUrl, { headers: HEADERS, timeout: 15000 });
+        // نستخدم الرابط الوسيط الذي يضمن استخدام البروكسي
+        const response = await axios.get(PROXY_FETCH_URL, { 
+            timeout: FETCH_TIMEOUT,
+            headers: HEADERS
+        });
+        
+        // التحقق من الاستجابة
+        if (response.status !== 200) {
+            throw new Error(`فشل في جلب المحتوى عبر البروكسي. رمز الحالة: ${response.status}`);
+        }
+        
+        // إذا كانت الاستجابة JSON، فهذا يعني أن البروكسي فشل
+        if (typeof response.data === 'object' && response.data !== null) {
+             throw new Error(`فشل البروكسي في جلب المحتوى: ${JSON.stringify(response.data)}`);
+        }
+
         htmlContent = response.data;
+
     } catch (e) {
-        throw new Error("فشل في الحصول على محتوى الصفحة عبر البروكسي أو الصفحة غير موجودة.");
+        throw new Error(`فشل في الحصول على محتوى الصفحة عبر البروكسي: ${e.message}`);
     }
 
     const $ = cheerio.load(htmlContent);
