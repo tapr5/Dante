@@ -96,7 +96,7 @@ function extractJsVars(scriptContent) {
  */
 export async function decryptWitanimeLinks(url) {
     let htmlContent;
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+    const proxyUrl = `https://api.vreden.my.id/api/v1/tools/proxy?url=${encodeURIComponent(url)}?lang=id-ID&region=hk`;
     
     try {
         // نستخدم الرابط الوسيط لجلب المحتوى
