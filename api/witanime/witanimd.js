@@ -16,8 +16,8 @@ export default async function handler(req, res) {
     const slug = match[1];
 
     // بناء رابط الـ API مع proxy
-    const apiUrl = `https://api.vreden.my.id/api/v1/tools/proxy?url=${encodeURIComponent(
-      `https://witanime.you/wp-json/wp/v2/anime?slug=${slug}?lang=id-ID&region=hk`
+    const apiUrl = `${encodeURIComponent(
+      `https://witanime.you/wp-json/wp/v2/anime?slug=${slug}`
     )}`;
 
     // جلب JSON من proxy
