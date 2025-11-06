@@ -1,99 +1,37 @@
-// pages/api/episodes.js
 import fetch from "node-fetch";
 
-const PROXY = "https://api.allorigins.win/get?url="; // يبقى كما هو
-const PROXY_VREDEN = "https://api.vreden.my.id/api/v1/tools/proxy?url="; // فقط للمرحلة الثالثة
-const EXTRA_PARAMS = "?lang=id-ID&region=hk";
-
+const PROXY = "https://api.allorigins.win/get?url="; // البروكسي لجلب HTML
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
 };
 
-// --- استخراج معرف الأنمي من صفحة HTML ---
 async function getAnimeId(animeUrl) {
-  const proxyUrl = `${PROXY}${encodeURIComponent(animeUrl)}`;
   try {
-    const res = await fetch(proxyUrl, { headers: HEADERS });
-    if (!res.ok) throw new Error("فشل في جلب الصفحة عبر البروكسي");
+    const res = await fetch(`${PROXY}${encodeURIComponent(animeUrl)}`, { headers: HEADERS });
+    if (!res.ok) throw new Error("فشل في جلب الصفحة");
 
     const data = await res.json();
     const html = data.contents || "";
 
-    // البحث عن معرف الأنمي في كود HTML
-    const match = html.match(
-      /href=["']https:\/\/witanime\.you\/wp-json\/wp\/v2\/anime\/(\d+)["']/
-    );
+    // محاولة استخراج الـ ID من رابط API مباشر أو من JSON في الصفحة
+    let match = html.match(/href=["']https:\/\/witanime\.you\/wp-json\/wp\/v2\/anime\/(\d+)["']/);
+    if (!match) {
+      // محاولة ثانية: البحث عن JSON في الصفحة
+      match = html.match(/"anime":\s*{[^}]*"id":\s*(\d+)/);
+    }
+
     if (match) return parseInt(match[1]);
     return null;
   } catch (err) {
-    console.error("❌ خطأ أثناء استخراج Anime ID:", err.message);
+    console.error("❌ خطأ:", err.message);
     return null;
   }
 }
 
-// --- جلب قائمة الحلقات (باستخدام بروكسي Vreden فقط) ---
-async function getEpisodesFromApi(animeId) {
-  const apiUrl = `https://witanime.you/wp-json/wp/v2/episode?anime=${animeId}&per_page=100`;
-  const proxyUrl = `${PROXY_VREDEN}${encodeURIComponent(apiUrl)}${EXTRA_PARAMS}`;
-
-  try {
-    const res = await fetch(proxyUrl, { headers: HEADERS });
-    if (!res.ok) throw new Error("فشل في جلب بيانات API عبر بروكسي Vreden");
-
-    const data = await res.json();
-
-    // ✅ في API Vreden، الحلقات موجودة داخل data.result.content
-    if (!data.result || !Array.isArray(data.result.content)) {
-      throw new Error("الـ API لم يُرجع بنية بيانات صحيحة");
-    }
-
-    const episodesData = data.result.content;
-
-    const episodes = episodesData.map((ep) => ({
-      id: ep.id,
-      title: ep.title?.rendered || "بدون عنوان",
-      url: ep.link || "#",
-      date: ep.date || null,
-    }));
-
-    // عكس الترتيب (من الأقدم للأحدث)
-    return episodes.reverse();
-  } catch (err) {
-    console.error("❌ خطأ أثناء جلب الحلقات:", err.message);
-    return { error: err.message };
-  }
-}
-
-// --- نقطة النهاية الرئيسية ---
-export default async function handler(req, res) {
-  const { url } = req.query;
-
-  if (!url) {
-    return res
-      .status(400)
-      .json({ error: "يرجى تمرير معامل 'url' في الرابط." });
-  }
-
-  // 1. استخراج Anime ID (يبقى كما هو)
-  const animeId = await getAnimeId(url);
-  if (!animeId) {
-    return res
-      .status(502)
-      .json({ error: "تعذر استخراج Anime ID من الرابط." });
-  }
-
-  // 2. جلب قائمة الحلقات (باستخدام بروكسي Vreden)
-  const episodes = await getEpisodesFromApi(animeId);
-  if (episodes.error) {
-    return res.status(502).json({ error: episodes.error });
-  }
-
-  // 3. إرسال النتيجة النهائية
-  return res.status(200).json({
-    anime_url: url,
-    extracted_anime_id: animeId,
-    episode_count: episodes.length,
-    episodes,
-  });
-}
+// --- استخدام الدالة ---
+const url = "ضع_رابط_الأنمي_هنا";
+getAnimeId(url).then((id) => {
+  if (id) console.log("معرف الأنمي:", id);
+  else console.log("تعذر استخراج معرف الأنمي");
+});
