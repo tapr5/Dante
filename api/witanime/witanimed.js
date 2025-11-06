@@ -1,7 +1,10 @@
 // pages/api/episodes.js
 import fetch from "node-fetch";
 
-const PROXY = "https://api.allorigins.win/get?url=";
+// 🧩 إعدادات البروكسي و الهيدر
+const PROXY_VREDEN = "https://api.vreden.my.id/api/v1/tools/proxy?url=";
+const EXTRA_PARAMS = "?lang=id-ID&region=hk";
+
 const HEADERS = {
   "User-Agent":
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
@@ -9,13 +12,13 @@ const HEADERS = {
 
 // --- استخراج معرف الأنمي من صفحة HTML ---
 async function getAnimeId(animeUrl) {
-  const proxyUrl = `${PROXY}${encodeURIComponent(animeUrl)}`;
+  const proxyUrl = `${PROXY_VREDEN}${encodeURIComponent(animeUrl)}${EXTRA_PARAMS}`;
   try {
     const res = await fetch(proxyUrl, { headers: HEADERS });
     if (!res.ok) throw new Error("فشل في جلب الصفحة عبر البروكسي");
 
     const data = await res.json();
-    const html = data.contents || "";
+    const html = data.result?.content || "";
 
     // البحث عن معرف الأنمي في كود HTML
     const match = html.match(
@@ -29,27 +32,32 @@ async function getAnimeId(animeUrl) {
   }
 }
 
-// --- جلب قائمة الحلقات ---
+// --- جلب قائمة الحلقات عبر بروكسي Vreden ---
 async function getEpisodesFromApi(animeId) {
   const apiUrl = `https://witanime.you/wp-json/wp/v2/episode?anime=${animeId}&per_page=100`;
-  const proxyUrl = `${PROXY}${encodeURIComponent(apiUrl)}`;
+  const proxyUrl = `${PROXY_VREDEN}${encodeURIComponent(apiUrl)}${EXTRA_PARAMS}`;
 
   try {
     const res = await fetch(proxyUrl, { headers: HEADERS });
-    if (!res.ok) throw new Error("فشل في جلب بيانات API عبر البروكسي");
+    if (!res.ok) throw new Error("فشل في جلب بيانات API عبر بروكسي Vreden");
 
     const data = await res.json();
-    const content = data.contents;
-    if (!content) throw new Error("الـ API أرجع محتوى فارغ");
 
-    const episodesData = JSON.parse(content);
+    // ✅ البيانات الحقيقية موجودة داخل data.result.content (مصفوفة)
+    if (!data.result || !Array.isArray(data.result.content)) {
+      throw new Error("الـ API لم يُرجع بنية بيانات صحيحة");
+    }
 
-    const episodes = episodesData.map((ep) => ({
+    const episodesData = data.result.content;
+
+    const episodes = episodesData.map(ep => ({
+      id: ep.id,
       title: ep.title?.rendered || "بدون عنوان",
       url: ep.link || "#",
+      date: ep.date || null
     }));
 
-    // عكس الترتيب (من الأقدم للأحدث)
+    // ترتيب من الأقدم إلى الأحدث
     return episodes.reverse();
   } catch (err) {
     console.error("❌ خطأ أثناء جلب الحلقات:", err.message);
