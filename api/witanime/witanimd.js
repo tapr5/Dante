@@ -15,13 +15,15 @@ export default async function handler(req, res) {
     }
     const slug = match[1];
 
-    // رابط proxy مع الرابط النهائي كما طلبت
-    const apiUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(
-      `https://witanime.you/wp-json/wp/v2/anime?slug=${slug}`
-    )}`;
+    // رابط مباشر بدون proxy
+    const apiUrl = `http://217.154.201.164:7763/api/animes?slug=${slug}`;
 
-    // جلب JSON من proxy
-    const { data } = await axios.get(apiUrl);
+    // جلب JSON مباشرة
+    const { data } = await axios.get(apiUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+      }
+    });
 
     // إعادة JSON كما هو
     res.status(200).json(data);
