@@ -15,7 +15,9 @@ export default async function handler(req, res) {
         .json({ error: "الرابط غير صالح، لم يتم العثور على ID." });
 
     const fileId = match[1];
-    const apiUrl = `https://api.gofile.io/contents/${fileId}`;
+    const apiUrl = `https://api.gofile.io/contents/${fileId}?wt=4fd6sg89d7s6&contentFilter=&page=1&pageSize=1000&sortField=name&sortDirection=1`;
+
+    // نفس الـ headers التي سنستعملها للستريم أيضا
     const headers = {
       Accept: "*/*",
       Authorization: "Bearer Lg4kqBlLGL7tMqq7XT4qP4wXGctI0hOT",
@@ -23,42 +25,63 @@ export default async function handler(req, res) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
     };
 
-    // جلب بيانات الملفات من GoFile
+    // جلب بيانات الملفات
     const { data } = await axios.get(apiUrl, { headers });
+
     if (data.status !== "ok" || !data.data?.children)
       return res.status(404).json({ error: "لم يتم العثور على أي ملفات." });
 
-    // أخذ أول فيديو MP4 موجود
-    const file = Object.values(data.data.children).find(f => f.name.endsWith(".mp4"));
-    if (!file) return res.status(404).json({ error: "لا يوجد فيديو MP4 للعرض." });
+    // نأخذ أول ملف mp4
+    const file = Object.values(data.data.children).find((f) =>
+      f.name.endsWith(".mp4")
+    );
+    if (!file)
+      return res.status(404).json({ error: "لا يوجد فيديو MP4 للعرض." });
 
     const videoUrl = file.link;
 
-    // ⚡ ستريم مباشر للفيديو
+    // ⚡ ستريم الفيديو بنفس Authorization وUser-Agent
     const agent = new https.Agent({ rejectUnauthorized: false });
 
-    https.get(
+    const streamReq = https.get(
       videoUrl,
-      { agent, headers: { "User-Agent": headers["User-Agent"] } },
-      (videoResponse) => {
-        if (videoResponse.statusCode !== 200 && videoResponse.statusCode !== 206) {
-          return res.status(500).send(`HTTP Error: ${videoResponse.statusCode}`);
+      {
+        agent,
+        headers: {
+          ...headers,
+          Range: req.headers.range || "", // لدعم seek في الفيديو
+        },
+      },
+      (videoRes) => {
+        if (![200, 206].includes(videoRes.statusCode)) {
+          res
+            .status(videoRes.statusCode || 500)
+            .send(`HTTP Error: ${videoRes.statusCode}`);
+          return;
         }
 
-        res.setHeader("Content-Type", "video/mp4");
-        res.setHeader(
-          "Content-Disposition",
-          `inline; filename="${filename || file.name}"`
-        );
+        // تمرير رؤوس الفيديو كما هي
+        res.writeHead(videoRes.statusCode, {
+          "Content-Type": "video/mp4",
+          "Accept-Ranges": "bytes",
+          "Content-Length": videoRes.headers["content-length"],
+          "Content-Range": videoRes.headers["content-range"],
+          "Content-Disposition": `inline; filename="${filename || file.name}"`,
+        });
 
-        videoResponse.pipe(res);
+        // تمرير الستريم مباشرة
+        videoRes.pipe(res);
       }
-    ).on("error", (err) => res.status(500).send(err.message));
+    );
 
+    streamReq.on("error", (err) => {
+      console.error("❌ خطأ أثناء الستريم:", err.message);
+      res.status(500).json({ error: "فشل في تشغيل الستريم", details: err.message });
+    });
   } catch (error) {
-    console.error("❌ خطأ في ستريم GoFile:", error.message);
+    console.error("❌ خطأ عام:", error.message);
     res.status(500).json({
-      error: "فشل في ستريم الفيديو من GoFile",
+      error: "حدث خطأ أثناء معالجة الطلب",
       details: error.message,
     });
   }
