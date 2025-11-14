@@ -1,34 +1,32 @@
+// pages/api/getEpisodeJson.js
 import axios from "axios";
 
 export default async function handler(req, res) {
-  try {
+    if (req.method !== 'GET') {
+        return res.status(405).json({ error: "Method Not Allowed" });
+    }
+
     const { url } = req.query;
 
     if (!url) {
-      return res.status(400).json({ error: "يرجى إرسال رابط الأنمي" });
+        return res.status(400).json({ error: "الرجاء إرسال رابط الحلقة كمعامل استعلام." });
     }
 
-    // استخراج الـ slug من الرابط
-    const match = url.match(/\/anime\/([^\/]+)/);
-    if (!match) {
-      return res.status(400).json({ error: "تعذر استخراج Anime slug من الرابط." });
+    try {
+        // استدعاء API مباشرة
+        const apiUrl = `http://217.154.201.164:7763/api/tst?url=${encodeURIComponent(url)}`;
+        const response = await axios.get(apiUrl, { timeout: 15000 });
+
+        // إرجاع البيانات كما هي
+        res.status(200).json({
+            success: true,
+            data: response.data
+        });
+    } catch (e) {
+        res.status(500).json({
+            success: false,
+            error: "فشل في جلب البيانات من API",
+            details: e.message
+        });
     }
-    const slug = match[1];
-
-    // رابط مباشر بدون proxy
-    const apiUrl = `http://217.154.201.164:7763/api/animes?slug=${slug}`;
-
-    // جلب JSON مباشرة
-    const { data } = await axios.get(apiUrl, {
-      headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-      }
-    });
-
-    // إعادة JSON كما هو
-    res.status(200).json(data);
-
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
 }
