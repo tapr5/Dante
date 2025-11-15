@@ -14,7 +14,7 @@ export default async function handler(req, res) {
 
     try {
         // استدعاء API مباشرة
-        const apiUrl = `http://217.154.201.164:7763/api/tst?url=${encodeURIComponent(url)}`;
+        const apiUrl = `http://217.154.201.164:7763/api/tst1?url=${encodeURIComponent(url)}`;
         const response = await axios.get(apiUrl, { timeout: 15000 });
 
         // إرجاع البيانات كما هي
