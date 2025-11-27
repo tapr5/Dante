@@ -1,25 +1,36 @@
-// api/proxy-json.js
+// api/proxy.js
 import fetch from "node-fetch";
 import pkg from "socks-proxy-agent";
 const { SocksProxyAgent } = pkg;
 
-const PROXY = process.env.SOCKS_PROXY || "socks5://165.101.189.3:1080";
-
-// User-Agent مخصص (يمكن تغييره حسب الحاجة)
+// User-Agent حديث
 const USER_AGENT =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
   "AppleWebKit/537.36 (KHTML, like Gecko) " +
   "Chrome/119.0.0.0 Safari/537.36";
 
 export default async function handler(req, res) {
-  const { url } = req.query;
+  const { url, ip } = req.query;
 
   if (!url) {
-    res.status(400).json({ error: "الرجاء تمرير رابط عبر ?url=مثال" });
-    return;
+    return res.status(400).json({
+      error: "الرجاء تمرير رابط عبر ?url=",
+    });
   }
 
-  const agent = new SocksProxyAgent(PROXY);
+  // اختر البروكسي من ip= أو من env
+  const proxyUrl = ip
+    ? `socks5://${ip}`
+    : process.env.SOCKS_PROXY || null;
+
+  // إذا لا يوجد بروكسي → أعيد خطأ
+  if (!proxyUrl) {
+    return res.status(400).json({
+      error: "لم يتم تمرير ip= ولا يوجد SOCKS_PROXY في env",
+    });
+  }
+
+  const agent = new SocksProxyAgent(proxyUrl);
 
   try {
     const response = await fetch(url, {
@@ -27,33 +38,33 @@ export default async function handler(req, res) {
       timeout: 15000,
       headers: {
         "User-Agent": USER_AGENT,
-        "Accept": "*/*",
-        "Accept-Language": "en-US,en;q=0.9"
-      }
+        Accept: "*/*",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
     });
 
-    // قراءة body كنص
     const body = await response.text();
 
-    // تحويل الهيدرز إلى JSON
+    // headers → object
     const headersObj = {};
     response.headers.forEach((value, key) => {
       headersObj[key] = value;
     });
 
-    res.status(200).json({
+    return res.status(200).json({
+      proxy: proxyUrl,
+      target: url,
       status: response.status,
       statusText: response.statusText,
       headers: headersObj,
-      body
+      body,
     });
-
   } catch (err) {
-    res.status(500).json({
+    return res.status(500).json({
+      proxy: proxyUrl,
+      target: url,
       status: 500,
-      statusText: "Proxy Error",
-      proxy: PROXY,
-      error: err.message || err.toString()
+      error: err.message || String(err),
     });
   }
 }
