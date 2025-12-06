@@ -18,23 +18,38 @@ export default async function handler(req, res) {
     });
 
     const text = await response.text();
-
-    // استخراج HTML من JSON داخل الرد
     let content = "";
+
     try {
-      const parsed = JSON.parse(text);
-      content = parsed.data.content;
-    } catch {
+      // 1. تحليل كائن JSON الخارجي
+      const outerParsed = JSON.parse(text);
+
+      // 2. التحقق من وجود حقل 'html' الذي يحتوي على سلسلة JSON الداخلية
+      if (outerParsed.html) {
+        // 3. تحليل سلسلة JSON الداخلية
+        const innerParsed = JSON.parse(outerParsed.html);
+        
+        // 4. استخراج محتوى HTML الفعلي من المسار الصحيح
+        content = innerParsed.data.data.content;
+      } else {
+        // في حال كان الهيكل مختلفاً، نعود إلى محاولة استخراج المحتوى مباشرة
+        content = outerParsed.data.content;
+      }
+    } catch (e) {
+      // إذا فشل التحليل في أي خطوة، نفترض أن النص هو محتوى HTML الخام
       content = text;
     }
 
-    // استخراج روابط الصور من HTML
-    const regex = /<img[^>]+src="([^"]+)"[^>]*>/g;
+    // استخراج روابط الصور من HTML باستخدام التعبير النمطي (Regex)
+    // تم تعديل التعبير النمطي ليكون أكثر دقة ويأخذ في الاعتبار المسافات البيضاء الزائدة في قيمة src
+    const regex = /<img[^>]+src=["']\s*([^"']+)\s*["'][^>]*>/g;
     const images = [];
     let match;
 
+    // استخدام حلقة while لاستخراج جميع المطابقات
     while ((match = regex.exec(content)) !== null) {
-      images.push(match[1]);
+      // match[1] يحتوي على رابط الصورة
+      images.push(match[1].trim());
     }
 
     res.status(200).json({
