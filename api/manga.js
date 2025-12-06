@@ -17,11 +17,29 @@ export default async function handler(req, res) {
       body: bodyData,
     });
 
-    const text = await response.text(); // الموقع يرجّع HTML
+    const text = await response.text();
+
+    // استخراج HTML من JSON داخل الرد
+    let content = "";
+    try {
+      const parsed = JSON.parse(text);
+      content = parsed.data.content;
+    } catch {
+      content = text;
+    }
+
+    // استخراج روابط الصور من HTML
+    const regex = /<img[^>]+src="([^"]+)"[^>]*>/g;
+    const images = [];
+    let match;
+
+    while ((match = regex.exec(content)) !== null) {
+      images.push(match[1]);
+    }
 
     res.status(200).json({
       success: true,
-      html: text
+      images
     });
 
   } catch (err) {
